@@ -3,7 +3,7 @@
 CivilRightsSummarizedAI is the working space for our CMSE capstone project focused on using modern LLM and NLP techniques to summarize lengthy U.S. civil-rights legal documents. This repository will evolve throughout the semester into a full research and engineering log for the project.
 
 ## Course Context
-- **Institution / Course**: Michigan State University – CMSE Capstone
+- **Institution / Course**: Michigan State University – CMSE Capstone alongside/for UofM in collaboration with Civil Rights Clearinghouse for Justice
 - **Team Goal**: Deliver a reproducible pipeline that ingests a range of civil-rights cases and produces concise, accurate, and accessible summaries for stakeholders.
 
 ## Repository Guide
@@ -15,7 +15,6 @@ CivilRightsSummarizedAI is the working space for our CMSE capstone project focus
 - `Examples/` – Lightweight datasets and tutorials for demonstrating the workflow.
 - `package_name/` – Python package placeholder that will evolve into the production code.
 - `environments/` – Additional environment definitions for specialized hardware or deployment contexts.
-- `S2026-UofM_Civil_Rights_Summaries.pdf` – Project brief outlining background research and initial requirements.
 
 ## Repository Structure
 ```
@@ -54,14 +53,9 @@ As the semester progresses we still plan to incorporate:
 - `setup.py`/`pyproject.toml` once packaging and distribution requirements are finalized.
 
 ## Getting Started
-1. Clone the repository (`git clone <repo-url>`) and move into the project directory.
+1. Clone the repository (`git clone (https://github.com/thinq8/CivilRightsSummarizedAI.git)`) and move into the project directory.
 2. Create and activate a Python environment (Conda, venv, or Poetry) that matches the forthcoming `environment.yml`.
 3. Install project dependencies using `conda env create -f environment.yml` (or the richer specs inside `environments/`) and follow instructions in the `docs/` folder for running experiments or the application.
-
-## Contributing
-- Open issues for new ideas, documentation gaps, or refactors.
-- Use feature branches and pull requests for all contributions; include context, screenshots, or experiment logs when relevant.
-- Keep commits focused and reference tickets or meeting notes in commit messages to maintain traceability.
 
 ## License
 This project is released under the MIT License (see `LICENSE`).
