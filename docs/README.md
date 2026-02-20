@@ -1,13 +1,13 @@
-# Documentation Hub
+# Documentation
 
-This directory collects all written resources that guide teammates and reviewers through the CivilRightsSummarizedAI project.
+Project documentation is intentionally lightweight and focused on the active ingestion pipeline.
 
-## Structure
-- `package_name/` – API references and module-level writeups generated from the codebase.
-- `images/` – Figures, diagrams, and other visuals referenced throughout the documentation.
-- Additional folders will be created as design docs and experiment notes accumulate.
+## Primary references
+- `README.md` (repository root): setup, run commands, operations checks, and environment variables.
+- `plan.md` (repository root): roadmap and phased implementation plan.
+- `archive/README.md` (repository root): index of non-runtime historical/reference artifacts.
 
-## Authoring Notes
-- Prefer Markdown for living documents and export to HTML or PDF only for finalized deliverables.
-- Keep diagrams editable (e.g., source files from draw.io, Figma) alongside exported images.
-- Link documents back to milestones and meeting notes for traceability.
+## Authoring conventions
+- Keep operational runbooks close to executable code and commands.
+- Prefer short Markdown documents over broad placeholder docs.
+- Remove stale docs quickly when architecture changes to avoid onboarding confusion.

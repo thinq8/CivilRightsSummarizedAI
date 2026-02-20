@@ -1,0 +1,104 @@
+{
+  "cases": [
+    {
+      "id": "case-001",
+      "name": "Doe v. Metro City Police Department",
+      "court": "N.D. California",
+      "jurisdiction": "Federal",
+      "status": "Active",
+      "updated_at": "2024-01-20T18:04:00Z",
+      "metadata": {
+        "topics": ["police misconduct", "class action"],
+        "plaintiffs": ["Jane Doe", "Metropolitan Justice League"],
+        "defendants": ["Metro City", "Metro City Police Department"]
+      },
+      "dockets": [
+        {
+          "id": "docket-001",
+          "name": "District Court Docket",
+          "number": "3:24-cv-01234",
+          "court": "N.D. California",
+          "updated_at": "2024-01-20T18:04:00Z",
+          "metadata": {
+            "assigned_judge": "Hon. Riverside"
+          },
+          "documents": [
+            {
+              "id": "doc-001",
+              "title": "Class Action Complaint",
+              "document_type": "Complaint",
+              "filed_date": "2024-01-20T18:03:00Z",
+              "importance": "high",
+              "source_url": "https://example.org/doc-001.pdf",
+              "text": "Plaintiffs allege a pattern of unconstitutional stop-and-frisk practices that targeted residents in predominantly Black neighborhoods. The complaint details dozens of instances where officers used force without justification and fabricated charges to mask civil rights violations. Plaintiffs seek declaratory and injunctive relief, along with compensatory damages for the putative class.",
+              "metadata": {
+                "subject": "Fourth Amendment violations",
+                "relief": ["injunctive", "damages"]
+              }
+            },
+            {
+              "id": "doc-002",
+              "title": "Preliminary Injunction Order",
+              "document_type": "Order",
+              "filed_date": "2024-02-14T10:00:00Z",
+              "importance": "high",
+              "source_url": "https://example.org/doc-002.pdf",
+              "text": "The court grants in part plaintiffs' motion for preliminary injunction, prohibiting Metro City Police Department from conducting suspicionless stops in identified zones. The court found a likelihood of success on the merits based on extensive statistical evidence and officer testimony.",
+              "metadata": {
+                "subject": "Preliminary Injunction"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "case-002",
+      "name": "Rivera v. State Department of Corrections",
+      "court": "S.D. Texas",
+      "jurisdiction": "Federal",
+      "status": "Settled",
+      "updated_at": "2023-11-10T13:00:00Z",
+      "metadata": {
+        "topics": ["prison conditions"],
+        "plaintiffs": ["Elena Rivera"],
+        "defendants": ["Texas Department of Corrections"]
+      },
+      "dockets": [
+        {
+          "id": "docket-002",
+          "name": "Settlement Docket",
+          "number": "4:22-cv-04567",
+          "court": "S.D. Texas",
+          "updated_at": "2023-11-10T13:00:00Z",
+          "documents": [
+            {
+              "id": "doc-003",
+              "title": "Settlement Agreement",
+              "document_type": "Settlement",
+              "filed_date": "2023-11-01T09:00:00Z",
+              "importance": "medium",
+              "source_url": "https://example.org/doc-003.pdf",
+              "text": "Parties enter into a settlement requiring the Department of Corrections to retrofit housing units with air conditioning and implement medical screening protocols for heat-sensitive individuals. The agreement includes a three-year monitoring period and attorney's fees.",
+              "metadata": {
+                "subject": "Conditions settlement"
+              }
+            },
+            {
+              "id": "doc-004",
+              "title": "Dismissal Order",
+              "document_type": "Order",
+              "filed_date": "2023-11-10T13:00:00Z",
+              "importance": "low",
+              "source_url": "https://example.org/doc-004.pdf",
+              "text": "Pursuant to the settlement, the court dismisses the case with prejudice but retains jurisdiction to enforce compliance for three years.",
+              "metadata": {
+                "subject": "Dismissal"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
