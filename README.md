@@ -2,6 +2,9 @@
 
 Ingestion and summarization tooling for Clearinghouse civil rights cases.
 
+## Install and Demo Instructions
+- See [INSTALL.md](INSTALL.md) for the reproducible setup, test, and demo workflow used for grading/share-out.
+
 ## Course Context
 - **Institution / Course**: Michigan State University CMSE Capstone, in collaboration with Civil Rights Clearinghouse stakeholders.
 - **Team Goal**: Deliver a reproducible pipeline that ingests civil-rights case records and prepares data for high-quality summarization workflows.
