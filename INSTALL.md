@@ -1,6 +1,6 @@
 # INSTALL.md
 
-This guide is for instructors, classmates, and community partners to install, test, and demo the Civil Rights Summarized AI project with NDA-safe example data.
+This guide is for instructors, classmates, and community partners to install, test, and demo the Civil Rights Summarized AI project with example data.
 
 ## 1) Software Requirements
 
@@ -30,7 +30,7 @@ Notes:
 - `environment.yml` is intentionally minimal.
 - Project/runtime dependencies are installed from `pyproject.toml` using `pip install -e ".[dev]"`.
 
-## 4) Data Instructions (NDA/IP Safe)
+## 4) Data Instructions
 
 ### Included example data (default for grading/demo)
 - Use `data/fixtures/mock_dataset.json`.
