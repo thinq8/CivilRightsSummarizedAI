@@ -38,7 +38,7 @@ class HttpClearinghouseClient(ClearinghouseClient):
         self._backoff_seconds = backoff_seconds
         self._max_backoff_seconds = max_backoff_seconds
 
-        self._min_interval_seconds = 1.2
+        self._min_interval_seconds = 1.5
         self._last_request_time = 0.0
         self._rate_lock = threading.Lock()
 
@@ -160,8 +160,7 @@ class HttpClearinghouseClient(ClearinghouseClient):
         retry_after = response.headers.get("Retry-After") if response is not None else None
         if retry_after:
             try:
-                wait = float(retry_after)
-                return max(0.0, min(wait, self._max_backoff_seconds))
+                return max(0.0, float(retry_after))
             except ValueError:
                 pass
 
