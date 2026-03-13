@@ -7,8 +7,8 @@ import time
 from pathlib import Path
 
 import httpx
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine, func, or_, select
+from sqlalchemy.orm import sessionmaker
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_PATH = PROJECT_ROOT / "src"
@@ -21,8 +21,10 @@ from clearinghouse.storage.models import DocumentRecord
 
 DB_URL = "sqlite:////Volumes/LaCie/clearinghouse_data/live.db"
 BASE_URL = "https://clearinghouse.net"
+
 MIN_INTERVAL_SECONDS = 1.5
-BATCH_SIZE = 100
+BATCH_SIZE = 5  # keep small for first test
+
 MAX_RETRIES = 5
 BACKOFF_SECONDS = 1.0
 MAX_BACKOFF_SECONDS = 60.0
@@ -44,6 +46,7 @@ def compute_backoff(attempt: int, response: httpx.Response | None = None) -> flo
 def fetch_text(client: httpx.Client, url: str, last_request_time: float) -> tuple[str | None, float]:
     elapsed = time.monotonic() - last_request_time
     wait_time = MIN_INTERVAL_SECONDS - elapsed
+
     if wait_time > 0:
         time.sleep(wait_time)
 
@@ -57,7 +60,6 @@ def fetch_text(client: httpx.Client, url: str, last_request_time: float) -> tupl
 
         if response.status_code in {408, 429, 500, 502, 503, 504} and attempt < MAX_RETRIES:
             time.sleep(compute_backoff(attempt, response))
-            last_request_time = time.monotonic()
             continue
 
         response.raise_for_status()
@@ -67,6 +69,7 @@ def fetch_text(client: httpx.Client, url: str, last_request_time: float) -> tupl
 
 def main() -> None:
     token = normalize_api_token(os.getenv("CLEARINGHOUSE_API_TOKEN"))
+
     if not token:
         raise ValueError("CLEARINGHOUSE_API_TOKEN is not set")
 
@@ -81,13 +84,14 @@ def main() -> None:
         },
         timeout=60.0,
     ) as client, SessionLocal() as session:
-        total_remaining = session.scalar(
-            select(DocumentRecord).where(
-                DocumentRecord.has_text.is_(True),
-                DocumentRecord.text_url.is_not(None),
-                ((DocumentRecord.text.is_(None)) | (DocumentRecord.text == ""))
-            ).count()
+
+        remaining_query = select(func.count()).select_from(DocumentRecord).where(
+            DocumentRecord.has_text.is_(True),
+            DocumentRecord.text_url.is_not(None),
+            or_(DocumentRecord.text.is_(None), DocumentRecord.text == ""),
         )
+
+        total_remaining = session.execute(remaining_query).scalar_one()
 
         print(f"Documents remaining to hydrate: {total_remaining}")
 
@@ -95,13 +99,13 @@ def main() -> None:
         processed = 0
 
         while True:
-            docs = session.execute(
-                select(DocumentRecord).where(
-                    DocumentRecord.has_text.is_(True),
-                    DocumentRecord.text_url.is_not(None),
-                    ((DocumentRecord.text.is_(None)) | (DocumentRecord.text == ""))
-                ).limit(BATCH_SIZE)
-            ).scalars().all()
+            docs_query = select(DocumentRecord).where(
+                DocumentRecord.has_text.is_(True),
+                DocumentRecord.text_url.is_not(None),
+                or_(DocumentRecord.text.is_(None), DocumentRecord.text == ""),
+            ).limit(BATCH_SIZE)
+
+            docs = session.execute(docs_query).scalars().all()
 
             if not docs:
                 break
@@ -109,7 +113,9 @@ def main() -> None:
             for doc in docs:
                 try:
                     text_value, last_request_time = fetch_text(client, doc.text_url, last_request_time)
+
                     doc.text = text_value if text_value is not None else ""
+
                     processed += 1
 
                     if processed % 25 == 0:
