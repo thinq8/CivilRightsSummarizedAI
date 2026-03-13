@@ -23,7 +23,7 @@ DB_URL = "sqlite:////Volumes/LaCie/clearinghouse_data/live.db"
 BASE_URL = "https://clearinghouse.net"
 
 MIN_INTERVAL_SECONDS = 1.2
-BATCH_SIZE = 5  # keep small for first test
+BATCH_SIZE = 50
 
 MAX_RETRIES = 5
 BACKOFF_SECONDS = 1.0
@@ -32,6 +32,7 @@ MAX_BACKOFF_SECONDS = 60.0
 
 def compute_backoff(attempt: int, response: httpx.Response | None = None) -> float:
     retry_after = response.headers.get("Retry-After") if response is not None else None
+
     if retry_after:
         try:
             return max(0.0, float(retry_after))
@@ -40,6 +41,7 @@ def compute_backoff(attempt: int, response: httpx.Response | None = None) -> flo
 
     expo = BACKOFF_SECONDS * (2**attempt)
     jitter = random.uniform(0.0, BACKOFF_SECONDS)
+
     return max(0.0, min(expo + jitter, MAX_BACKOFF_SECONDS))
 
 
@@ -73,7 +75,11 @@ def main() -> None:
     if not token:
         raise ValueError("CLEARINGHOUSE_API_TOKEN is not set")
 
-    engine = create_engine(DB_URL)
+    engine = create_engine(
+        DB_URL,
+        connect_args={"timeout": 60},
+    )
+
     SessionLocal = sessionmaker(bind=engine)
 
     with httpx.Client(
@@ -92,7 +98,6 @@ def main() -> None:
         )
 
         total_remaining = session.execute(remaining_query).scalar_one()
-
         print(f"Documents remaining to hydrate: {total_remaining}")
 
         last_request_time = 0.0
@@ -112,10 +117,10 @@ def main() -> None:
 
             for doc in docs:
                 try:
-                    text_value, last_request_time = fetch_text(client, doc.text_url, last_request_time)
-
+                    text_value, last_request_time = fetch_text(
+                        client, doc.text_url, last_request_time
+                    )
                     doc.text = text_value if text_value is not None else ""
-
                     processed += 1
 
                     if processed % 25 == 0:
