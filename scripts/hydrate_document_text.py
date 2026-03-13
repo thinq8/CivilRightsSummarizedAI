@@ -22,7 +22,7 @@ from clearinghouse.storage.models import DocumentRecord
 DB_URL = "sqlite:////Volumes/LaCie/clearinghouse_data/live.db"
 BASE_URL = "https://clearinghouse.net"
 
-MIN_INTERVAL_SECONDS = 1.5
+MIN_INTERVAL_SECONDS = 1.2
 BATCH_SIZE = 5  # keep small for first test
 
 MAX_RETRIES = 5
