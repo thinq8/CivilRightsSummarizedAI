@@ -116,7 +116,6 @@ def main() -> None:
         },
         timeout=60.0,
     ) as client, SessionLocal() as session:
-
         remaining_query = select(func.count()).select_from(DocumentRecord).where(
             DocumentRecord.has_text.is_(True),
             DocumentRecord.text_url.is_not(None),
@@ -183,12 +182,6 @@ def main() -> None:
             f"Done. Processed {processed} docs "
             f"(stored text: {stored_text_count}, placeholders: {placeholder_count})"
         )
-
-
-if __name__ == "__main__":
-    main()
-
-        print(f"Done. Hydrated {processed} documents.")
 
 
 if __name__ == "__main__":
