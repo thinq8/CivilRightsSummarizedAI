@@ -4,6 +4,7 @@ __pycache__/
 *.db
 .env
 .env.*
+!.env.example
 .venv/
 .mypy_cache/
 .pytest_cache/
@@ -16,3 +17,23 @@ data/dev.db
 data/raw_documents/
 data/tmp/
 poetry.lock
+envs/
+
+# Training data (too large for git)
+data/training/*.jsonl
+
+# Model weights and checkpoints
+runs/*/checkpoint-*
+runs/*/adapter_model.*
+runs/*/tokenizer*
+runs/*/special_tokens*
+runs/*/added_tokens*
+runs/*/merges.txt
+runs/*/vocab.json
+
+# Eval results (regenerable)
+eval/results/*.jsonl
+eval/results/*.json
+
+# Jupyter
+.ipynb_checkpoints/

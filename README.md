@@ -1,99 +1,81 @@
 # Civil Rights Summarized AI
 
-Ingestion and summarization tooling for Clearinghouse civil rights cases.
+Ingestion, fine-tuning, and evaluation pipeline for summarizing civil rights litigation cases from the [Civil Rights Litigation Clearinghouse](https://clearinghouse.net).
 
 ## Install and Demo Instructions
-- See [INSTALL.md](INSTALL.md) for the reproducible setup, test, and demo workflow used for grading/share-out.
+
+- See [INSTALL.md](INSTALL.md) for the reproducible setup, test, and demo workflow.
+
+## Figure Reproduction
+
+- See [`notebooks/figure_instructions.ipynb`](notebooks/figure_instructions.ipynb) for complete instructions to reproduce all project figures.
+- Exported figures are saved to the [`figures/`](figures/) directory.
 
 ## Course Context
+
 - **Institution / Course**: Michigan State University CMSE Capstone, in collaboration with Civil Rights Clearinghouse stakeholders.
-- **Team Goal**: Deliver a reproducible pipeline that ingests civil-rights case records and prepares data for high-quality summarization workflows.
+- **Team Goal**: Deliver a reproducible pipeline that ingests civil-rights case records, fine-tunes a summarization model, and evaluates output quality.
 
-This repository now includes a resilient ingestion pipeline designed for two near-term goals:
-1. Pull data reliably from the Clearinghouse API.
-2. Preserve data lineage so the same corpus can later be used for LLM fine-tuning/evaluation.
+## Project Components
 
-## Why This Design
+### 1. Data Ingestion Pipeline
 
-For training and research workflows, normalized tables alone are not enough. Upstream APIs evolve,
-and fields that are ignored today may become important training features later. This pipeline stores:
-- Normalized entities (`cases`, `dockets`, `documents`) for current app/query use.
+A resilient pipeline that pulls case data from the Clearinghouse API:
+- Normalized entities (`cases`, `dockets`, `documents`) for querying.
 - Raw payload snapshots (`raw_api_payloads`) for schema evolution and reproducibility.
 - Operational metadata (`ingestion_runs`, `ingestion_checkpoints`) for resume/debug/audit.
 
-That split keeps the project practical for a small student team while preserving options for model
-development at the end of the project.
+### 2. LoRA Fine-Tuning
+
+Fine-tuning of Qwen2.5-7B-Instruct using LoRA adapters on 9,841 case summarization examples. The training data addresses the **document fragmentation** challenge: legal cases span multiple documents (complaints, motions, orders) that must be synthesized into coherent summaries.
+
+### 3. Evaluation Pipeline
+
+Three-tier evaluation of generated summaries:
+- **ROUGE** (1/2/L) — lexical overlap with reference summaries
+- **BERTScore** — semantic similarity
+- **LLM-as-Judge** — Claude scores on 5 dimensions (factual accuracy, completeness, conciseness, legal reasoning, overall quality)
 
 ## Repository Layout
 
-- `src/clearinghouse`: Python package (clients, pipeline, storage, CLI)
-- `data/fixtures/mock_dataset.json`: local mock dataset for deterministic tests
-- `scripts/fetch_document.py`: smoke-test utility for one live document
-- `tests/`: unit/integration tests for ingestion behavior
-- `archive/`: legacy/reference artifacts (non-runtime materials)
-
-## Step-by-Step Setup (New Machine)
-
-Run these commands from repository root (`CivilRightsSummarizedAI`).
-
-1. Create a local virtual environment:
-
-```bash
-python3 -m venv .venv
+```
+├── src/clearinghouse/          # Python package (clients, pipeline, storage, CLI)
+├── eval/                       # Evaluation pipeline (generate + score summaries)
+│   ├── config.py               # Paths, model config, judge prompts
+│   ├── generate.py             # Summary generation (local model or Claude API)
+│   ├── evaluate.py             # ROUGE, BERTScore, LLM-as-Judge scoring
+│   └── results/                # Output scores and summaries (gitignored)
+├── notebooks/                  # Figure reproduction instructions
+│   └── figure_instructions.ipynb
+├── figures/                    # Exported figures
+├── scripts/                    # Utility scripts
+│   ├── fetch_document.py       # Smoke test for single live document
+│   └── hydrate_document_text.py # Bulk text hydration from API
+├── data/
+│   ├── fixtures/               # Mock dataset for deterministic tests
+│   └── training/               # Training data (gitignored, see README)
+├── runs/                       # Model checkpoints (gitignored, see README)
+├── tests/                      # Unit and integration tests
+├── .env.example                # Environment variable template
+├── INSTALL.md                  # Setup and demo instructions
+├── pyproject.toml              # Package config and dependencies
+└── LICENSE                     # MIT License
 ```
 
-2. Ensure `pip` exists inside `.venv` (some environments create venvs without pip):
+## Quick Start
 
 ```bash
-./.venv/bin/python -m ensurepip --upgrade
-```
+# Clone and install
+git clone https://github.com/thinq8/CivilRightsSummarizedAI.git
+cd CivilRightsSummarizedAI
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
 
-3. Upgrade packaging tools:
+# Run tests
+pytest -q
 
-```bash
-./.venv/bin/python -m pip install --upgrade pip setuptools wheel
-```
-
-4. Install project + dev dependencies:
-
-```bash
-./.venv/bin/python -m pip install -e ".[dev]"
-```
-
-5. Verify the environment with tests:
-
-```bash
-./.venv/bin/python -m pytest -q
-```
-
-Generated SQLite files (for example `data/dev.db` and `data/live.db`) are local runtime artifacts and are intentionally not part of source control.
-
-## Pipeline Behavior (Current)
-
-### Ingestion flow
-
-For each case returned by API/fixture:
-1. Upsert case row.
-2. Upsert related docket rows.
-3. Upsert related document rows.
-4. Build heuristic summary for each document.
-5. Archive raw payload snapshots (deduped by SHA256 hash).
-6. Advance checkpoint only after case commit succeeds.
-
-### Reliability features
-
-- API retries with exponential backoff + jitter for transient failures.
-- `Retry-After` header support on throttling responses.
-- Incremental resume from checkpoint (`--resume-from-checkpoint`).
-- Per-case error isolation in non-strict mode (`--continue-on-error`).
-- Run-level auditing with counts/error fields in `ingestion_runs`.
-
-## Running Ingestion
-
-### 1) Mock run (recommended first)
-
-```bash
-./.venv/bin/python -m clearinghouse.cli ingest-mock \
+# Run mock ingestion demo
+python -m clearinghouse.cli ingest-mock \
     --db-url sqlite:///data/dev.db \
     --fixture data/fixtures/mock_dataset.json \
     --checkpoint-key mock-default \
@@ -101,16 +83,30 @@ For each case returned by API/fixture:
     --archive-raw-payloads
 ```
 
-Expected output shape:
-`Ingestion complete: run_id=<uuid> cases=<n> dockets=<n> documents=<n> errors=<n>`
+For ML/evaluation work, install the ML extras:
 
-### 2) Live run
+```bash
+pip install -e ".[ml]"
+```
 
-Set token (raw token or `Token <value>` are both accepted):
+## Running Ingestion
+
+### Mock run (recommended first)
+
+```bash
+python -m clearinghouse.cli ingest-mock \
+    --db-url sqlite:///data/dev.db \
+    --fixture data/fixtures/mock_dataset.json \
+    --checkpoint-key mock-default \
+    --resume-from-checkpoint \
+    --archive-raw-payloads
+```
+
+### Live run (API token required)
 
 ```bash
 export CLEARINGHOUSE_API_TOKEN="YOUR_TOKEN_HERE"
-./.venv/bin/python -m clearinghouse.cli ingest-live \
+python -m clearinghouse.cli ingest-live \
     --db-url sqlite:///data/live.db \
     --checkpoint-key live-default \
     --resume-from-checkpoint \
@@ -119,106 +115,28 @@ export CLEARINGHOUSE_API_TOKEN="YOUR_TOKEN_HERE"
     --case-limit 25
 ```
 
-Use `--strict` instead of `--continue-on-error` if you want the run to fail fast on first case error.
-
-## CLI Argument Reference
-
-### Global CLI
+## Running Evaluation
 
 ```bash
-./.venv/bin/python -m clearinghouse.cli --help
-```
+cd eval
 
-- `--verbose`, `-v`: enable debug logging.
+# Generate summaries (choose source)
+python generate.py --source local --sample 50
+python generate.py --source claude --sample 50
 
-### `ingest-mock` arguments
-
-```bash
-./.venv/bin/python -m clearinghouse.cli ingest-mock --help
-```
-
-- `--since TEXT`: ISO timestamp filter (example: `2023-01-01T00:00:00Z`).
-- `--case-limit INTEGER`: max number of cases to ingest.
-- `--db-url TEXT`: SQLAlchemy DB URL.
-- `--fixture PATH`: path to fixture JSON.
-- `--checkpoint-key TEXT`: checkpoint namespace key (default: `mock-default`).
-- `--resume-from-checkpoint` / `--no-resume-from-checkpoint`: use stored checkpoint timestamp as effective start point.
-- `--archive-raw-payloads` / `--no-archive-raw-payloads`: store raw payload snapshots in `raw_api_payloads`.
-- `--continue-on-error` / `--strict`: continue on per-case failures vs fail fast.
-
-### `ingest-live` arguments
-
-```bash
-./.venv/bin/python -m clearinghouse.cli ingest-live --help
-```
-
-- `--since TEXT`: ISO timestamp filter.
-- `--case-limit INTEGER`: max number of cases.
-- `--db-url TEXT`: SQLAlchemy DB URL.
-- `--api-token TEXT`: API token (`Token ` prefix optional).
-- `--checkpoint-key TEXT`: checkpoint namespace key (default from `CLEARINGHOUSE_LIVE_CHECKPOINT_KEY`).
-- `--resume-from-checkpoint` / `--no-resume-from-checkpoint`: incremental resume behavior.
-- `--archive-raw-payloads` / `--no-archive-raw-payloads`: archive raw API payloads.
-- `--continue-on-error` / `--strict`: continue or fail fast on case-level errors.
-
-## Operational Verification
-
-After a run, inspect key counts:
-
-```bash
-sqlite3 data/dev.db "SELECT 'cases', count(*) FROM cases UNION ALL SELECT 'dockets', count(*) FROM dockets UNION ALL SELECT 'documents', count(*) FROM documents;"
-```
-
-Inspect run metadata:
-
-```bash
-sqlite3 data/dev.db "SELECT id, source, status, started_at, finished_at, cases_ingested, dockets_ingested, documents_ingested, errors FROM ingestion_runs ORDER BY started_at DESC LIMIT 5;"
-```
-
-Inspect checkpoint state:
-
-```bash
-sqlite3 data/dev.db "SELECT key, source, last_case_id, last_case_last_checked, last_run_id FROM ingestion_checkpoints;"
-```
-
-Inspect raw payload archive volume:
-
-```bash
-sqlite3 data/dev.db "SELECT resource_type, count(*) FROM raw_api_payloads GROUP BY resource_type ORDER BY resource_type;"
+# Score summaries
+python evaluate.py results/generations_local_*.jsonl --judge-sample 25
 ```
 
 ## Environment Variables
 
-All settings use `CLEARINGHOUSE_` prefix (loaded from shell or `.env`):
+All ingestion settings use `CLEARINGHOUSE_` prefix (see `.env.example`):
 
-- `CLEARINGHOUSE_DATABASE_URL` (default `sqlite:///data/dev.db`)
-- `CLEARINGHOUSE_API_TOKEN`
-- `CLEARINGHOUSE_API_BASE_URL` (default `https://clearinghouse.net/api/v2p1`)
-- `CLEARINGHOUSE_API_TIMEOUT` (default `30.0`)
-- `CLEARINGHOUSE_API_MAX_RETRIES` (default `4`)
-- `CLEARINGHOUSE_API_BACKOFF_SECONDS` (default `0.5`)
-- `CLEARINGHOUSE_API_MAX_BACKOFF_SECONDS` (default `8.0`)
-- `CLEARINGHOUSE_LIVE_CHECKPOINT_KEY` (default `live-default`)
-- `CLEARINGHOUSE_LIVE_RESUME_FROM_CHECKPOINT` (default `true`)
-- `CLEARINGHOUSE_ARCHIVE_RAW_PAYLOADS` (default `true`)
-- `CLEARINGHOUSE_CONTINUE_ON_ERROR` (default `true`)
+- `CLEARINGHOUSE_API_TOKEN` — API authentication
+- `CLEARINGHOUSE_DATABASE_URL` — SQLAlchemy DB URL (default: `sqlite:///data/dev.db`)
+- `CLEARINGHOUSE_API_BASE_URL` — API base (default: `https://clearinghouse.net/api/v2p1`)
 
-## Fetch One Document (Smoke Test)
-
-Quickly inspect one live document and optional text:
-
-```bash
-./.venv/bin/python scripts/fetch_document.py <case_id> <document_id> \
-    --api-token "YOUR_TOKEN_HERE" \
-    --download-text
-```
-
-## Development Notes
-
-- `tests/test_mock_ingestion.py` validates basic end-to-end mock ingestion counts.
-- `tests/test_ingestion_resilience.py` validates checkpoint resume, raw payload dedupe, and token normalization.
-- The project currently uses SQLAlchemy `create_all` (no Alembic migrations yet).
-- For production growth, add migration tooling and background workers for PDF/OCR text extraction.
+For evaluation, set `ANTHROPIC_API_KEY` for Claude API access.
 
 ## References
 

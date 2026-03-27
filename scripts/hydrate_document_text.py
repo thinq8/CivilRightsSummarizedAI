@@ -20,8 +20,8 @@ from clearinghouse.clients.http import normalize_api_token
 from clearinghouse.storage.models import DocumentRecord
 
 
-DB_URL = "sqlite:////Volumes/LaCie/clearinghouse_data/live.db"
-BASE_URL = "https://clearinghouse.net"
+DB_URL = os.getenv("CLEARINGHOUSE_DATABASE_URL", "sqlite:///data/live.db")
+BASE_URL = os.getenv("CLEARINGHOUSE_API_BASE_URL", "https://clearinghouse.net")
 
 MIN_INTERVAL_SECONDS = 1.2
 BATCH_SIZE = 50

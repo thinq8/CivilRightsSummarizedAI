@@ -1,12 +1,13 @@
 # INSTALL.md
 
-This guide is for instructors, classmates, and community partners to install, test, and demo the Civil Rights Summarized AI project with example data.
+Setup, test, and demo instructions for the Civil Rights Summarized AI project.
 
 ## 1) Software Requirements
 
 - Git
-- Conda distribution (recommended: [Miniforge](https://conda-forge.org/download/))
-- Terminal (macOS/Linux shell or Windows Anaconda/Miniforge Prompt)
+- Python 3.11+
+- Terminal (macOS/Linux shell or Windows command prompt)
+- (Optional) CUDA-compatible GPU for local model inference
 
 ## 2) Clone the Repository
 
@@ -15,33 +16,68 @@ git clone https://github.com/thinq8/CivilRightsSummarizedAI.git
 cd CivilRightsSummarizedAI
 ```
 
-## 3) Create and Activate the Conda Environment
-
-From the repository root:
+## 3) Create and Activate a Virtual Environment
 
 ```bash
-conda env create --prefix ./envs --file environment.yml
-conda activate ./envs
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python3 -m venv .venv
+source .venv/bin/activate  # macOS/Linux
+# .venv\Scripts\activate   # Windows
+
+python -m pip install --upgrade pip setuptools wheel
 ```
 
-Notes:
-- `environment.yml` is intentionally minimal.
-- Project/runtime dependencies are installed from `pyproject.toml` using `pip install -e ".[dev]"`.
+## 4) Install Dependencies
 
-## 4) Data Instructions
+### Base install (ingestion pipeline + tests)
+
+```bash
+pip install -e ".[dev]"
+```
+
+### ML install (fine-tuning + evaluation + figures)
+
+```bash
+pip install -e ".[ml]"
+```
+
+This adds PyTorch, Transformers, PEFT, evaluation metrics (ROUGE, BERTScore), Anthropic SDK, matplotlib, and Jupyter.
+
+## 5) Environment Variables
+
+Copy the example environment file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Required variables:
+- `CLEARINGHOUSE_API_TOKEN` — for live API ingestion (not needed for mock demo)
+- `ANTHROPIC_API_KEY` — for Claude-based generation and LLM-as-Judge evaluation
+
+## 6) Data Instructions
 
 ### Included example data (default for grading/demo)
-- Use `data/fixtures/mock_dataset.json`.
-- This mock dataset is safe to share and is the default for install testing and demo runs.
+
+- Use `data/fixtures/mock_dataset.json` — safe to share, used for install testing and demo runs.
+
+### Training data (for ML pipeline)
+
+- Training/validation/test JSONL files are too large for git.
+- See `data/training/README.md` for download instructions.
+- Place files in `data/training/` (train.jsonl, val.jsonl, test.jsonl).
+
+### Model weights (for local inference)
+
+- LoRA adapter weights are too large for git.
+- See `runs/README.md` for reproduction or download instructions.
 
 ### Community partner/private data
+
 - Private partner data is **not** required for the reproducible demo.
 - Do not commit private data to this repository.
 - If private files are used locally, store them under ignored paths such as `data/raw_documents/` or `data/tmp/`.
 
-## 5) Test the Installation
+## 7) Test the Installation
 
 Run from repository root (with env activated):
 
@@ -49,10 +85,9 @@ Run from repository root (with env activated):
 pytest -q
 ```
 
-Expected result:
-- `4 passed` (or higher if new tests are added later).
+Expected result: `4 passed` (or higher if new tests are added later).
 
-## 6) Run the Demo (Out-of-the-Box)
+## 8) Run the Demo (Out-of-the-Box)
 
 Run the end-to-end mock ingestion demo:
 
@@ -65,16 +100,33 @@ python -m clearinghouse.cli ingest-mock \
   --archive-raw-payloads
 ```
 
-Expected output pattern:
-- `Ingestion complete: run_id=... cases=... dockets=... documents=... errors=...`
+Expected output pattern: `Ingestion complete: run_id=... cases=... dockets=... documents=... errors=...`
 
-Optional quick check:
+## 9) Reproduce Figures
+
+After installing ML dependencies and obtaining training data:
 
 ```bash
-python -m clearinghouse.cli ingest-mock --help
+cd notebooks
+jupyter notebook figure_instructions.ipynb
 ```
 
-## 7) Optional Live API Demo (Token Required)
+Run cells sequentially. See the notebook for per-figure data requirements and time estimates.
+
+## 10) Run Evaluation Pipeline
+
+```bash
+cd eval
+
+# Generate summaries (choose one)
+python generate.py --source local --sample 50   # requires GPU + model weights
+python generate.py --source claude --sample 50   # requires ANTHROPIC_API_KEY
+
+# Score summaries
+python evaluate.py results/generations_*.jsonl --judge-sample 25
+```
+
+## 11) Optional Live API Demo (Token Required)
 
 If you have approved Clearinghouse API credentials:
 
@@ -85,17 +137,9 @@ python -m clearinghouse.cli ingest-live --db-url sqlite:///data/live.db --case-l
 
 This step is optional and not required for course install verification.
 
-## 8) Remove Environment (Optional Cleanup)
+## 12) Remove Environment (Optional Cleanup)
 
 ```bash
-conda deactivate
-rm -rf ./envs
-```
-
-## 9) Windows UTF-8 Fix (If Needed)
-
-If `environment.yml` encoding issues occur on Windows:
-
-```powershell
-conda env export --from-history | Set-Content -Encoding utf8 environment.yml
+deactivate
+rm -rf .venv
 ```
