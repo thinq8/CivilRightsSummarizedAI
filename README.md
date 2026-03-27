@@ -10,6 +10,9 @@ Ingestion, fine-tuning, and evaluation pipeline for summarizing civil rights lit
 
 - See [`notebooks/figure_instructions.ipynb`](notebooks/figure_instructions.ipynb) for complete instructions to reproduce all project figures.
 - Exported figures are saved to the [`figures/`](figures/) directory.
+- **Figures 1 & 2** can be reproduced immediately — all required data is bundled in `data/fixtures/` (no large downloads needed).
+- **Figures 3 & 4** require running the evaluation pipeline first (see notebook for steps).
+- Pre-generated PNGs are included in `figures/` for reference if you don't have the full training data or model weights.
 
 ## Course Context
 
