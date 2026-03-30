@@ -1,0 +1,93 @@
+{
+  "n_records": 50,
+  "source_file": "results/generations_local_20260115_143022.jsonl",
+  "elapsed_seconds": 487.2,
+  "rouge1_f": {
+    "mean": 0.4218,
+    "median": 0.4305,
+    "std": 0.1347,
+    "min": 0.1024,
+    "max": 0.7812,
+    "n": 50
+  },
+  "rouge2_f": {
+    "mean": 0.2156,
+    "median": 0.2089,
+    "std": 0.1102,
+    "min": 0.0312,
+    "max": 0.5234,
+    "n": 50
+  },
+  "rougeL_f": {
+    "mean": 0.3541,
+    "median": 0.3612,
+    "std": 0.1198,
+    "min": 0.0891,
+    "max": 0.6723,
+    "n": 50
+  },
+  "bertscore_p": {
+    "mean": 0.8634,
+    "median": 0.8701,
+    "std": 0.0412,
+    "min": 0.7423,
+    "max": 0.9312,
+    "n": 50
+  },
+  "bertscore_r": {
+    "mean": 0.8489,
+    "median": 0.8523,
+    "std": 0.0478,
+    "min": 0.7102,
+    "max": 0.9245,
+    "n": 50
+  },
+  "bertscore_f1": {
+    "mean": 0.8558,
+    "median": 0.8612,
+    "std": 0.0423,
+    "min": 0.7234,
+    "max": 0.9278,
+    "n": 50
+  },
+  "judge_factual_accuracy": {
+    "mean": 4.12,
+    "median": 4.0,
+    "std": 0.7234,
+    "min": 2.0,
+    "max": 5.0,
+    "n": 25
+  },
+  "judge_completeness": {
+    "mean": 3.84,
+    "median": 4.0,
+    "std": 0.8912,
+    "min": 2.0,
+    "max": 5.0,
+    "n": 25
+  },
+  "judge_conciseness_style": {
+    "mean": 4.28,
+    "median": 4.0,
+    "std": 0.6134,
+    "min": 3.0,
+    "max": 5.0,
+    "n": 25
+  },
+  "judge_legal_reasoning": {
+    "mean": 3.96,
+    "median": 4.0,
+    "std": 0.7823,
+    "min": 2.0,
+    "max": 5.0,
+    "n": 25
+  },
+  "judge_overall": {
+    "mean": 4.04,
+    "median": 4.0,
+    "std": 0.6712,
+    "min": 2.0,
+    "max": 5.0,
+    "n": 25
+  }
+}
