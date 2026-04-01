@@ -62,7 +62,7 @@ Three-tier evaluation of generated summaries:
 ├── .env.example                # Environment variable template
 ├── INSTALL.md                  # Setup and demo instructions
 ├── pyproject.toml              # Package config and dependencies
-└── LICENSE                     # MIT License
+└── LICENSE.md                     # MIT License
 ```
 
 ## Quick Start
