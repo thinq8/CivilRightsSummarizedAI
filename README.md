@@ -133,7 +133,7 @@ python evaluate.py results/generations_local_*.jsonl --judge-sample 25
 
 ## Environment Variables
 
-All ingestion settings use `CLEARINGHOUSE_` prefix (see `.env.example`):
+All ingestion settings use `CLEARINGHOUSE_` prefix:
 
 - `CLEARINGHOUSE_API_TOKEN` — API authentication
 - `CLEARINGHOUSE_DATABASE_URL` — SQLAlchemy DB URL (default: `sqlite:///data/dev.db`)
