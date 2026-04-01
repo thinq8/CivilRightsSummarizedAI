@@ -44,12 +44,6 @@ This adds PyTorch, Transformers, PEFT, evaluation metrics (ROUGE, BERTScore), An
 
 ## 5) Environment Variables
 
-Copy the example environment file and fill in your values:
-
-```bash
-cp .env.example .env
-```
-
 Required variables:
 - `CLEARINGHOUSE_API_TOKEN` — for live API ingestion (not needed for mock demo)
 - `ANTHROPIC_API_KEY` — for Claude-based generation and LLM-as-Judge evaluation
