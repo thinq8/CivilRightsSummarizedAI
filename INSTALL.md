@@ -7,7 +7,13 @@ Setup, test, and demo instructions for the Civil Rights Summarized AI project.
 - Git
 - Python 3.11+
 - Terminal (macOS/Linux shell or Windows command prompt)
+- SQLite (usually included with Python)
 - (Optional) CUDA-compatible GPU for local model inference
+
+Verify Python version:
+```bash
+python3 --version
+```
 
 ## 2) Clone the Repository
 
@@ -42,13 +48,40 @@ pip install -e ".[ml]"
 
 This adds PyTorch, Transformers, PEFT, evaluation metrics (ROUGE, BERTScore), Anthropic SDK, matplotlib, and Jupyter.
 
-## 5) Environment Variables
+## 5) Test the Installation
+Make sure the virtual environment is activated.
+
+Run from the repository root directory:
+
+```bash
+pytest -q
+```
+
+Expected result: `4 passed` (or higher if new tests are added later).
+
+## 6) Run the Demo (Out-of-the-Box)
+Run the end-to-end mock ingestion demo:
+
+```bash
+python -m clearinghouse.cli ingest-mock \
+  --db-url sqlite:///data/dev.db \
+  --fixture data/fixtures/mock_dataset.json \
+  --checkpoint-key mock-default \
+  --resume-from-checkpoint \
+  --archive-raw-payloads
+```
+
+This creates a SQLite database at: data/dev.db
+
+Expected output pattern: `Ingestion complete: run_id=... cases=... dockets=... documents=... errors=...`
+
+## 7) Environment Variables (not required for mock demo)
 
 Required variables:
 - `CLEARINGHOUSE_API_TOKEN` — for live API ingestion (not needed for mock demo)
 - `ANTHROPIC_API_KEY` — for Claude-based generation and LLM-as-Judge evaluation
 
-## 6) Data Instructions
+## 8) Data Instructions
 
 ### Included example data (default for grading/demo)
 
@@ -70,31 +103,6 @@ Required variables:
 - Private partner data is **not** required for the reproducible demo.
 - Do not commit private data to this repository.
 - If private files are used locally, store them under ignored paths such as `data/raw_documents/` or `data/tmp/`.
-
-## 7) Test the Installation
-
-Run from repository root (with env activated):
-
-```bash
-pytest -q
-```
-
-Expected result: `4 passed` (or higher if new tests are added later).
-
-## 8) Run the Demo (Out-of-the-Box)
-
-Run the end-to-end mock ingestion demo:
-
-```bash
-python -m clearinghouse.cli ingest-mock \
-  --db-url sqlite:///data/dev.db \
-  --fixture data/fixtures/mock_dataset.json \
-  --checkpoint-key mock-default \
-  --resume-from-checkpoint \
-  --archive-raw-payloads
-```
-
-Expected output pattern: `Ingestion complete: run_id=... cases=... dockets=... documents=... errors=...`
 
 ## 9) Reproduce Figures
 
