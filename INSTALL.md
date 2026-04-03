@@ -75,11 +75,19 @@ This creates a SQLite database at: data/dev.db
 
 Expected output pattern: `Ingestion complete: run_id=... cases=... dockets=... documents=... errors=...`
 
-## 7) Environment Variables (not required for mock demo)
+## 7) Environment Variables (optional)
 
-Required variables:
-- `CLEARINGHOUSE_API_TOKEN` — for live API ingestion (not needed for mock demo)
-- `ANTHROPIC_API_KEY` — for Claude-based generation and LLM-as-Judge evaluation
+The mock demo does not require any environment variables.
+
+The following variables are only needed for advanced usage:
+
+- CLEARINGHOUSE_API_TOKEN — required for live API ingestion
+- ANTHROPIC_API_KEY — required for Claude-based generation and LLM-as-Judge evaluation
+
+Example (macOS/Linux):
+
+export CLEARINGHOUSE_API_TOKEN="YOUR_TOKEN"
+export ANTHROPIC_API_KEY="YOUR_KEY"
 
 ## 8) Data Instructions
 
@@ -106,7 +114,13 @@ Required variables:
 
 ## 9) Reproduce Figures
 
-After installing ML dependencies and obtaining training data:
+Figure reproduction instructions are provided in `notebooks/figure_instructions.ipynb`.
+
+Notes:
+- Figures 1 & 2 can be reproduced immediately using bundled fixture data
+- Figures 3 & 4 require running the evaluation pipeline first
+- Exported figures are saved to the figures/ directory
+- Pre-generated PNGs are included for reference if full training data is unavailable
 
 ```bash
 cd notebooks
