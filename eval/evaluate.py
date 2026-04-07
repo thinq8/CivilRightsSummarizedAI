@@ -40,7 +40,29 @@ def compute_rouge(records):
         rec["rougeL_f"] = round(scores["rougeL"].fmeasure, 4)
     return records
 
+'''def normalize_text(text):
+    return " ".join(text.strip().split())
 
+
+def compute_rouge(records):
+    from rouge_score import rouge_scorer
+
+    scorer = rouge_scorer.RougeScorer(
+        ["rouge1", "rouge2", "rougeL", "rougeLsum"],
+        use_stemmer=True
+    )
+
+    for rec in tqdm(records, desc="ROUGE"):
+        reference = normalize_text(rec["reference"])
+        generated = normalize_text(rec["generated"])
+        scores = scorer.score(reference, generated)
+
+        for metric in ["rouge1", "rouge2", "rougeL", "rougeLsum"]:
+            rec[f"{metric}_p"] = round(scores[metric].precision, 4)
+            rec[f"{metric}_r"] = round(scores[metric].recall, 4)
+            rec[f"{metric}_f"] = round(scores[metric].fmeasure, 4)
+
+    return records '''
 # ── BERTScore ──────────────────────────────────────────────────────────────────
 def compute_bertscore(records):
     """Compute BERTScore P/R/F1 for each record."""
@@ -50,7 +72,7 @@ def compute_bertscore(records):
     gens = [r["generated"] for r in records]
 
     print("Computing BERTScore (this may take a minute)...")
-    P, R, F1 = bert_score(gens, refs, lang="en", verbose=True)
+    P, R, F1 = bert_score(gens, refs, lang="en", verbose=True, rescale_with_baseline=True)
 
     for i, rec in enumerate(records):
         rec["bertscore_p"] = round(P[i].item(), 4)
@@ -58,7 +80,28 @@ def compute_bertscore(records):
         rec["bertscore_f1"] = round(F1[i].item(), 4)
     return records
 
+'''def compute_bertscore(records):
+    from bert_score import score as bert_score
 
+    refs = [" ".join(r["reference"].strip().split()) for r in records]
+    gens = [" ".join(r["generated"].strip().split()) for r in records]
+
+    print("Computing BERTScore (this may take a minute)...")
+    P, R, F1 = bert_score(
+        gens,
+        refs,
+        lang="en",
+        verbose=True,
+        rescale_with_baseline=True
+    )
+    
+    for i, rec in enumerate(records):
+        rec["bertscore_p"] = round(P[i].item(), 4)
+        rec["bertscore_r"] = round(R[i].item(), 4)
+        rec["bertscore_f1"] = round(F1[i].item(), 4)
+
+    return records '''
+'''Havent specified modeltype for now in Bertscore to avoid slow running, will compromise on reproducability though.'''
 # ── LLM Judge ─────────────────────────────────────────────────────────────────
 def compute_judge_scores(records, sample_n=None, seed=42):
     """Use Claude to judge summary quality on 5 dimensions."""
