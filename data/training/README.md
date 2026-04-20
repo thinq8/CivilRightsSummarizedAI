@@ -12,7 +12,12 @@ This directory holds the training, validation, and test splits for the legal cas
 
 ## How to obtain
 
-These files were generated from the Civil Rights Litigation Clearinghouse data using the ingestion pipeline. Contact the project team or check the shared Teams directory for access.
+These files were generated from Civil Rights Litigation Clearinghouse records and human-written reference summaries using the ingestion/export workflow. They are not bundled because they are large and may include partner-controlled material.
+
+Use one of these sources:
+
+1. Rebuild the data from approved Clearinghouse API access using the ingestion pipeline.
+2. Copy the course/team-provided private artifact bundle, if you have been granted access.
 
 To place them correctly, copy or symlink them into this directory:
 
@@ -20,6 +25,28 @@ To place them correctly, copy or symlink them into this directory:
 # Example: copy from external location
 cp /path/to/First_Train/*.jsonl data/training/
 ```
+
+Expected final layout:
+
+```text
+data/training/train.jsonl
+data/training/val.jsonl
+data/training/test.jsonl
+```
+
+After these raw split files are present, build model-ready files with:
+
+```bash
+mkdir -p data/training_v2
+
+python scripts/prepare_training_data.py \
+  --input data/training/train.jsonl \
+  --output data/training_v2/train.jsonl \
+  --strategy extract_first \
+  --max-tokens 24000
+```
+
+Repeat for `val.jsonl` and `test.jsonl`.
 
 ## Data format
 
@@ -39,3 +66,7 @@ Each JSONL record contains:
 ```
 
 The `source_chunk_count` and `used_chunk_count` fields track document fragmentation — how many source documents were combined to produce each case summary.
+
+## Why this is separate from fixtures
+
+`data/fixtures/` contains small, shareable artifacts for tests and figure fallback. Those fixtures are enough to verify the code path and reproduce the bundled figures, but they are not enough to fine-tune or fully evaluate the model.

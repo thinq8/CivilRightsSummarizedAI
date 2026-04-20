@@ -1,73 +1,71 @@
 # Civil Rights Summarized AI
 
-End-to-end pipeline for multi-document summarization of civil rights litigation cases from the [Civil Rights Litigation Clearinghouse](https://clearinghouse.net), including data ingestion, LoRA fine-tuning, and automated evaluation.
+Civil Rights Summarized AI is a CMSE 495 capstone project for the Civil Rights Litigation Clearinghouse. It ingests case records, prepares long legal-document bundles for summarization, fine-tunes a Qwen2.5-7B LoRA model, evaluates generated summaries, and provides lightweight QA/review tools for partner feedback.
 
-## Install and Demo Instructions
+## Start Here
 
-- See [INSTALL.md](INSTALL.md) for the reproducible setup, test, and demo workflow.
+1. [INSTALL.md](INSTALL.md) - shortest setup, tests, and no-private-data demo.
+2. [TUTORIAL.md](TUTORIAL.md) - full walkthrough for graders, live API users, and ML/HPCC reproduction.
+3. [FINAL_SUBMISSION.md](FINAL_SUBMISSION.md) - final deliverable map, data-flow diagram, QA meaning, and tool index.
 
-## Usage Overview
+## Quick Smoke Test
 
-The pipeline supports three main workflows:
+```bash
+git clone https://github.com/thinq8/CivilRightsSummarizedAI.git
+cd CivilRightsSummarizedAI
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip "setuptools<82" wheel
+python -m pip install -e ".[dev]"
+pytest -q
+python -m clearinghouse.cli ingest-mock
+```
 
-- Ingestion: Retrieve and normalize civil rights case data from the Clearinghouse API
-- Fine-tuning: Train LoRA adapters for multi-document case summarization
-- Evaluation: Score generated summaries using ROUGE-L, BERTScore, and an LLM-as-Judge rubric
+Expected results:
 
-See INSTALL.md for step-by-step execution instructions.
+- `pytest -q` prints `4 passed` or more if new tests have been added.
+- `ingest-mock` prints `cases=2 dockets=2 documents=4 errors=0`.
+
+The smoke test uses only bundled synthetic fixture data. It does not require Clearinghouse credentials, private training data, model weights, or API keys.
 
 ## Pipeline Overview
 
-### 1. Data Ingestion Pipeline
-
-A resilient pipeline that pulls case data from the Clearinghouse API:
-- Normalized entities (`cases`, `dockets`, `documents`) for querying.
-- Raw payload snapshots (`raw_api_payloads`) for schema evolution and reproducibility.
-- Operational metadata (`ingestion_runs`, `ingestion_checkpoints`) for resume/debug/audit.
-
-### 2. LoRA Fine-Tuning
-
-Fine-tuning of Qwen2.5-7B-Instruct using LoRA adapters on 9,841 case summarization examples. The training data addresses the **document fragmentation** challenge: legal cases span multiple documents (complaints, motions, orders) that must be synthesized into coherent summaries.
-
-### 3. Evaluation Pipeline
-
-Three-tier evaluation of generated summaries:
-- **ROUGE-L** — measures lexical overlap with reference summaries
-- **BERTScore** — measures semantic similarity using contextual embeddings
-- **LLM-as-Judge** — Claude scores on 5 dimensions (factual accuracy, completeness, conciseness, legal reasoning, overall quality)
-
-Combining lexical, semantic, and rubric-based metrics provides a more robust assessment than any single metric, particularly for multi-document legal case summaries where wording may differ while meaning remains consistent.
-
-## Repository Structure
-
+```mermaid
+flowchart LR
+    A["Clearinghouse API"] --> B["Ingestion CLI"]
+    B --> C["SQLite database"]
+    C --> D["Training JSONL"]
+    D --> E["Document-aware preparation"]
+    E --> F["LoRA fine-tuning on HPCC"]
+    F --> G["Checkpoint evaluation"]
+    G --> H["QA triage + figures + report"]
+    C --> I["Metadata-only baseline"]
+    I --> H
+    J["Claude benchmark"] --> H
 ```
-├── src/clearinghouse/          # Python package (clients, pipeline, storage, CLI)
-├── eval/                       # Evaluation pipeline (generate + score summaries)
-│   ├── config.py               # Paths, model config, judge prompts
-│   ├── generate.py             # Summary generation (local model or Claude API)
-│   ├── evaluate.py             # ROUGE, BERTScore, LLM-as-Judge scoring
-│   └── results/                # Output scores and summaries (gitignored)
-├── notebooks/                  # Figure reproduction instructions
-│   └── figure_instructions.ipynb
-├── figures/                    # Exported figures
-├── scripts/                    # Utility scripts
-│   ├── fetch_document.py       # Smoke test for single live document
-│   └── hydrate_document_text.py # Bulk text hydration from API
-├── data/
-│   ├── fixtures/               # Mock dataset for deterministic tests
-│   └── training/               # Training data (gitignored, see README)
-├── runs/                       # Model checkpoints (gitignored, see README)
-├── tests/                      # Unit and integration tests
-├── .env.example                # Environment variable template
-├── INSTALL.md                  # Setup and demo instructions
-├── pyproject.toml              # Package config and dependencies
-└── LICENSE.md                     # MIT License
-```
+
+The project’s main technical finding is that the final training checkpoint was not the best model. Checkpoint 3000 had a better QA profile than checkpoint 3690, which overfit and produced malformed date artifacts. The final recommendation is a hybrid workflow: draft with the safest available route, run structural QA, and keep human editorial review in the loop.
+
+## Repository Map
+
+| Path | Purpose |
+|------|---------|
+| `src/clearinghouse/` | Installable ingestion package, clients, storage models, processing, and Typer CLI |
+| `scripts/` | Data preparation, LoRA training, checkpoint evaluation, Claude benchmark, and QA triage |
+| `eval/` | Generation and scoring pipeline for local model or Claude outputs |
+| `tools/` | Standalone browser generator/evaluator/QA prototypes and local API proxy |
+| `notebooks/figure_instructions.ipynb` | Reproduces the seven final report figures from bundled aggregate fixtures |
+| `data/fixtures/` | Small non-private fixtures for tests, figures, and demos |
+| `figures/` | Final report figures |
+| `tests/` | Unit tests and documentation consistency checks |
+| `REPORT.md` | Final technical report |
+| `SHARING_PLAN.md` | Nontechnical sharing and reviewer handoff guide |
+
+## What Is Not Bundled
+
+The public repository does not include full training JSONL files, prepared training splits, model checkpoints, raw private evaluation outputs, or API keys. The included fixtures are intentionally small and documented in [data/fixtures/README.md](data/fixtures/README.md).
 
 ## References
 
+- Civil Rights Litigation Clearinghouse: <https://clearinghouse.net>
 - Clearinghouse API docs: <https://api.clearinghouse.net>
-
-## License
-
-This project is released under the MIT License. See LICENSE.md for details.

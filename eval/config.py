@@ -8,7 +8,7 @@ from pathlib import Path
 # ── Paths ──────────────────────────────────────────────────────────────────────
 ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = ROOT / "data" / "training" / "test.jsonl"
-LORA_ADAPTER_PATH = ROOT / "runs" / "qwen25_7b_lora_run1"
+LORA_ADAPTER_PATH = ROOT / "runs" / "qwen25_7b_lora_run2" / "checkpoint-3000"
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 # ── Model config ───────────────────────────────────────────────────────────────
@@ -27,6 +27,14 @@ SUMMARIZATION_SYSTEM = (
     "covering: the dispute and stakes, filing date and court, whether class or "
     "individual action, type of counsel, legal claims and statutory basis, key "
     "procedural events, and outcome or current status."
+)
+
+# ── Structured summarization prompt (for improved training data) ─────────────
+SUMMARIZATION_STRUCTURED = (
+    "Write a concise case summary in past tense covering: the dispute and stakes, "
+    "filing date and court, whether class or individual action, type of counsel, "
+    "legal claims and statutory basis, key procedural events, and outcome or "
+    "current status."
 )
 
 # ── LLM-as-Judge prompts ──────────────────────────────────────────────────────

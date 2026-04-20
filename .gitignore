@@ -13,6 +13,7 @@ __pycache__/
 build/
 dist/
 .DS_Store
+.Rhistory
 data/dev.db
 data/raw_documents/
 data/tmp/
@@ -34,6 +35,12 @@ runs/*/vocab.json
 # Eval results (regenerable)
 eval/results/*.jsonl
 eval/results/*.json
+
+# Prepared training data (regenerable)
+data/training_v2/
+
+# Demo notebook (not tracked)
+notebooks/demo_progress.ipynb
 
 # Jupyter
 .ipynb_checkpoints/

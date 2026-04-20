@@ -1,161 +1,87 @@
-# INSTALL.md
+# Install and Smoke-Test Guide
 
-Setup, test, and demo instructions for the Civil Rights Summarized AI project.
+This is the shortest reviewer setup path. It uses a local Python virtual environment and bundled fixture data only. It does not require conda, Clearinghouse credentials, private training data, model weights, a GPU, or Claude/Anthropic credentials.
 
-## 1) Software Requirements
+For the full workflow after this smoke test, use [TUTORIAL.md](TUTORIAL.md).
+
+## Requirements
 
 - Git
-- Python 3.11+
-- Terminal (macOS/Linux shell or Windows command prompt)
-- SQLite (usually included with Python)
-- (Optional) CUDA-compatible GPU for local model inference
+- Python 3.11 or newer
+- Terminal, PowerShell, or another shell
 
-Verify Python version:
-```bash
-python3 --version
-```
-
-## 2) Clone the Repository
+## 1. Clone and Create a Local Environment
 
 ```bash
 git clone https://github.com/thinq8/CivilRightsSummarizedAI.git
 cd CivilRightsSummarizedAI
-```
 
-## 3) Create and Activate a Virtual Environment
-
-```bash
 python3 -m venv .venv
 source .venv/bin/activate  # macOS/Linux
-# .venv\Scripts\activate   # Windows
+# .venv\Scripts\activate   # Windows PowerShell/CMD
 
-python -m pip install --upgrade pip setuptools wheel
+python -m pip install --upgrade pip "setuptools<82" wheel
+python -m pip install -e ".[dev]"
 ```
 
-## 4) Install Dependencies
-
-### Base install (ingestion pipeline + tests)
-
-```bash
-pip install -e ".[dev]"
-```
-
-### ML install (fine-tuning + evaluation + figures)
-
-```bash
-pip install -e ".[ml]"
-```
-
-This adds PyTorch, Transformers, PEFT, evaluation metrics (ROUGE, BERTScore), Anthropic SDK, matplotlib, and Jupyter.
-
-## 5) Test the Installation
-Make sure the virtual environment is activated.
-
-Run from the repository root directory:
+## 2. Run Tests
 
 ```bash
 pytest -q
 ```
 
-Expected result: `4 passed` (or higher if new tests are added later).
+Expected output:
 
-## 6) Run the Demo (Out-of-the-Box)
-Run the end-to-end mock ingestion demo:
-
-```bash
-python -m clearinghouse.cli ingest-mock \
-  --db-url sqlite:///data/dev.db \
-  --fixture data/fixtures/mock_dataset.json \
-  --checkpoint-key mock-default \
-  --resume-from-checkpoint \
-  --archive-raw-payloads
+```text
+4 passed
 ```
 
-This creates a SQLite database at: data/dev.db
+The exact number may be higher if more tests are added later, but failures should be zero.
 
-Expected output pattern: `Ingestion complete: run_id=... cases=... dockets=... documents=... errors=...`
-
-## 7) Environment Variables (optional)
-
-The mock demo does not require any environment variables.
-
-The following variables are only needed for advanced usage:
-
-- CLEARINGHOUSE_API_TOKEN — required for live API ingestion
-- ANTHROPIC_API_KEY — required for Claude-based generation and LLM-as-Judge evaluation
-
-Example (macOS/Linux):
-
-export CLEARINGHOUSE_API_TOKEN="YOUR_TOKEN"
-export ANTHROPIC_API_KEY="YOUR_KEY"
-
-## 8) Data Instructions
-
-### Included example data (default for grading/demo)
-
-- Use `data/fixtures/mock_dataset.json` — safe to share, used for install testing and demo runs.
-
-### Training data (for ML pipeline)
-
-- Training/validation/test JSONL files are too large for git.
-- See `data/training/README.md` for download instructions.
-- Place files in `data/training/` (train.jsonl, val.jsonl, test.jsonl).
-
-### Model weights (for local inference)
-
-- LoRA adapter weights are too large for git.
-- See `runs/README.md` for reproduction or download instructions.
-
-### Community partner/private data
-
-- Private partner data is **not** required for the reproducible demo.
-- Do not commit private data to this repository.
-- If private files are used locally, store them under ignored paths such as `data/raw_documents/` or `data/tmp/`.
-
-## 9) Reproduce Figures
-
-Figure reproduction instructions are provided in `notebooks/figure_instructions.ipynb`.
-
-Notes:
-- Figures 1 & 2 can be reproduced immediately using bundled fixture data
-- Figures 3 & 4 require running the evaluation pipeline first
-- Exported figures are saved to the figures/ directory
-- Pre-generated PNGs are included for reference if full training data is unavailable
+## 3. Run the No-Private-Data Demo
 
 ```bash
-cd notebooks
-jupyter notebook figure_instructions.ipynb
+python -m clearinghouse.cli ingest-mock
 ```
 
-Run cells sequentially. See the notebook for per-figure data requirements and time estimates.
+Expected output pattern:
 
-## 10) Run Evaluation Pipeline
+```text
+Ingestion complete: run_id=... cases=2 dockets=2 documents=4 errors=0
+```
+
+This creates `data/dev.db`, which is ignored by git. The demo uses `data/fixtures/mock_dataset.json`, a synthetic two-case fixture documented in [data/fixtures/README.md](data/fixtures/README.md).
+
+## 4. Optional Next Steps
+
+| Goal | Where to go |
+|------|-------------|
+| Full grader walkthrough | [TUTORIAL.md](TUTORIAL.md) |
+| Final deliverable map | [FINAL_SUBMISSION.md](FINAL_SUBMISSION.md) |
+| Reproduce the seven final figures | [notebooks/figure_instructions.ipynb](notebooks/figure_instructions.ipynb) |
+| Understand scripts and QA | [scripts/README.md](scripts/README.md) |
+| Open partner-facing browser tools | [tools/README.md](tools/README.md) |
+
+## Optional API Keys
+
+Keys are not needed for the smoke test.
+
+- Clearinghouse live ingestion requires `CLEARINGHOUSE_API_TOKEN`.
+  - API quick start: <https://api.clearinghouse.net/quick-start>
+  - Access request: <https://www.clearinghouse.net/api-request>
+- Claude generation or judging requires `ANTHROPIC_API_KEY`.
+
+Copy `.env.example` to `.env` only if you are running live/API-backed workflows:
 
 ```bash
-cd eval
-
-# Generate summaries (choose one)
-python generate.py --source local --sample 50   # requires GPU + model weights
-python generate.py --source claude --sample 50   # requires ANTHROPIC_API_KEY
-
-# Score summaries
-python evaluate.py results/generations_*.jsonl --judge-sample 25
+cp .env.example .env
 ```
 
-## 11) Optional Live API Demo (Token Required)
+Never commit `.env` or API keys.
 
-If you have approved Clearinghouse API credentials:
-
-```bash
-export CLEARINGHOUSE_API_TOKEN="YOUR_TOKEN_HERE"
-python -m clearinghouse.cli ingest-live --db-url sqlite:///data/live.db --case-limit 25
-```
-
-This step is optional and not required for course install verification.
-
-## 12) Remove Environment (Optional Cleanup)
+## Optional Cleanup
 
 ```bash
 deactivate
-rm -rf .venv
+rm -rf .venv data/dev.db
 ```
