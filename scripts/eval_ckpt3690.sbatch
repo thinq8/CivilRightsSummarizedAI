@@ -17,14 +17,14 @@
 
 module purge
 module load Miniforge3
-conda activate legal-sum
+conda activate "${CONDA_ENV:-legal-sum}"
 
-PROJECT_DIR=/mnt/research/Civil_Rights_Summaries/Fragmentation
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}"
 export HF_HOME="$PROJECT_DIR/.hf_cache"
 export HF_HUB_CACHE="$HF_HOME/hub"
 export TRANSFORMERS_CACHE="$HF_HUB_CACHE"
 
-cd "$PROJECT_DIR"
+cd "$PROJECT_DIR" || { echo "FATAL: Cannot cd to $PROJECT_DIR"; exit 1; }
 
 pip install rouge-score --quiet 2>/dev/null
 
@@ -32,12 +32,12 @@ echo "============================================"
 echo "Eval: checkpoint-3690 (polish final)"
 echo "============================================"
 
-python3 Scripts/train_lora.py --help > /dev/null 2>&1  # warm up imports
+python3 scripts/train_lora.py --help > /dev/null 2>&1  # warm up imports
 
-python3 Scripts/eval_checkpoint_v2.py \
-    --checkpoint-dir runs/qwen25_7b_lora_run2/checkpoint-3690 \
+python3 scripts/eval_checkpoint_v2.py \
+    --checkpoint-dir "${RUN_DIR:-runs/qwen25_7b_lora_run2/checkpoint-3690}" \
     --base-model Qwen/Qwen2.5-7B-Instruct \
-    --test-file training_v2/test.jsonl \
+    --test-file "${TEST_FILE:-data/training_v2/test.jsonl}" \
     --num-samples 50 \
     --max-new-tokens 2048 \
     --output-file eval_ckpt3690.jsonl

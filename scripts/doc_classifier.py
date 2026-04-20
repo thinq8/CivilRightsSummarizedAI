@@ -196,7 +196,7 @@ if __name__ == "__main__":
     import json
     import sys
 
-    test_path = sys.argv[1] if len(sys.argv) > 1 else "First_Train/test.jsonl"
+    test_path = sys.argv[1] if len(sys.argv) > 1 else "data/training/test.jsonl"
     n_samples = int(sys.argv[2]) if len(sys.argv) > 2 else 5
 
     print(f"Testing classifier on {n_samples} records from {test_path}\n")

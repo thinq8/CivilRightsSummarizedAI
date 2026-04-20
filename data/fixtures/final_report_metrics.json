@@ -1,0 +1,135 @@
+{
+  "provenance": {
+    "description": "Reduced aggregate plotting data for the final report figures. This file contains no private source text, no reference summaries, and no generated model outputs.",
+    "contains_private_text": false,
+    "contains_model_outputs": false,
+    "created_from": [
+      "REPORT.md",
+      "eval_ckpt3000_scored.csv",
+      "eval_ckpt3690_scored.csv",
+      "eval_claude_code_scored.csv",
+      "qa_report.jsonl outputs",
+      "attribution summary JSONL outputs"
+    ],
+    "sample_size": 50
+  },
+  "prompt_length_distribution": {
+    "context_window_tokens": 32000,
+    "raw_fit_rate": 0.55,
+    "median_tokens": 27000,
+    "bins": [
+      {"label": "0-4K", "count": 120, "upper_tokens": 4000},
+      {"label": "4-8K", "count": 160, "upper_tokens": 8000},
+      {"label": "8-16K", "count": 190, "upper_tokens": 16000},
+      {"label": "16-32K", "count": 207, "upper_tokens": 32000},
+      {"label": "32-64K", "count": 250, "upper_tokens": 64000},
+      {"label": "64-128K", "count": 180, "upper_tokens": 128000},
+      {"label": ">128K", "count": 124, "upper_tokens": null}
+    ]
+  },
+  "checkpoint_comparison": [
+    {
+      "system": "ckpt-3000",
+      "rouge1": 0.370,
+      "rouge2": 0.1697,
+      "rougeL": 0.2172,
+      "bertscore_f1": 0.0531,
+      "qa_pass_rate": 0.14,
+      "qa_reject_rate": 0.46,
+      "primary_attribution": 0.8012,
+      "garbled_date_rate": 0.00,
+      "avg_prediction_words": 667.6
+    },
+    {
+      "system": "ckpt-3690",
+      "rouge1": 0.3846,
+      "rouge2": 0.1546,
+      "rougeL": 0.2136,
+      "bertscore_f1": 0.0783,
+      "qa_pass_rate": 0.02,
+      "qa_reject_rate": 0.72,
+      "primary_attribution": 0.7055,
+      "garbled_date_rate": 0.32,
+      "avg_prediction_words": 331.4
+    }
+  ],
+  "qa_triage": [
+    {"system": "ckpt-3000", "pass": 7, "review": 20, "reject": 23},
+    {"system": "ckpt-3690", "pass": 1, "review": 13, "reject": 36},
+    {"system": "Qwen7B metadata-only", "pass": 26, "review": 24, "reject": 0},
+    {"system": "Claude Sonnet", "pass": 16, "review": 20, "reject": 14}
+  ],
+  "source_attribution": [
+    {
+      "system": "ckpt-3000",
+      "primary": 0.8012,
+      "weak_supported": 0.0963,
+      "unsupported": 0.1025,
+      "unsupported_count": 133
+    },
+    {
+      "system": "ckpt-3690",
+      "primary": 0.7055,
+      "weak_supported": 0.2745,
+      "unsupported": 0.0199,
+      "unsupported_count": 13
+    },
+    {
+      "system": "Qwen7B metadata-only",
+      "primary": 0.8403,
+      "weak_supported": 0.1597,
+      "unsupported": 0.0,
+      "unsupported_count": 0
+    }
+  ],
+  "cost_quality": [
+    {
+      "system": "ckpt-3000",
+      "rouge1": 0.370,
+      "bertscore_f1": 0.0531,
+      "qa_pass_rate": 0.14,
+      "qa_reject_rate": 0.46,
+      "cost_per_case_usd": 0.0,
+      "avg_prediction_words": 667.6
+    },
+    {
+      "system": "ckpt-3690",
+      "rouge1": 0.3846,
+      "bertscore_f1": 0.0783,
+      "qa_pass_rate": 0.02,
+      "qa_reject_rate": 0.72,
+      "cost_per_case_usd": 0.0,
+      "avg_prediction_words": 331.4
+    },
+    {
+      "system": "Qwen7B metadata-only",
+      "rouge1": 0.368,
+      "bertscore_f1": null,
+      "qa_pass_rate": 0.52,
+      "qa_reject_rate": 0.0,
+      "cost_per_case_usd": 0.0,
+      "avg_prediction_words": 235.0
+    },
+    {
+      "system": "Claude Sonnet",
+      "rouge1": 0.4628,
+      "bertscore_f1": 0.1961,
+      "qa_pass_rate": 0.32,
+      "qa_reject_rate": 0.28,
+      "cost_per_case_usd": 0.42,
+      "avg_prediction_words": 218.2
+    }
+  ],
+  "flag_frequency": [
+    {"code": "GARBLED_DATE", "count": 48, "severity": "critical"},
+    {"code": "MISSING_ACTION_TYPE", "count": 43, "severity": "warning"},
+    {"code": "JUDGE_REJECT", "count": 33, "severity": "critical"},
+    {"code": "MISSING_REMEDY", "count": 26, "severity": "warning"},
+    {"code": "MISSING_STATUTE", "count": 18, "severity": "warning"},
+    {"code": "JUDGE_WEAK", "count": 16, "severity": "warning"},
+    {"code": "MISSING_OUTCOME", "count": 15, "severity": "warning"},
+    {"code": "LENGTH_TOO_SHORT_VS_REF", "count": 15, "severity": "warning"},
+    {"code": "LOW_ROUGE", "count": 15, "severity": "info"},
+    {"code": "MISSING_COURT", "count": 15, "severity": "warning"}
+  ]
+}

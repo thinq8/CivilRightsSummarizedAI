@@ -23,7 +23,7 @@ To place them correctly, copy or symlink them into this directory:
 
 ```bash
 # Example: copy from external location
-cp /path/to/First_Train/*.jsonl data/training/
+cp /path/to/private_training_bundle/*.jsonl data/training/
 ```
 
 Expected final layout:

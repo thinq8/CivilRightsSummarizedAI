@@ -394,7 +394,7 @@ The notebook loads these directly; it does not regenerate them. To regenerate:
 ```bash
 # Model eval (requires GPU + checkpoint)
 python scripts/eval_checkpoint_v2.py --checkpoint runs/qwen25_7b_lora_run2/checkpoint-3000 \
-  --test First_Train/test.jsonl --output eval/outputs/eval_ckpt3000.jsonl
+  --test data/training/test.jsonl --output eval/outputs/eval_ckpt3000.jsonl
 
 # QA triage (CPU only)
 python scripts/summary_qa.py --input eval/outputs/eval_ckpt3000.jsonl \

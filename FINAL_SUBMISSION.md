@@ -13,6 +13,26 @@ Start here if you are grading or reviewing the project:
 5. `tools/README.md` - partner-facing browser tools.
 6. `scripts/README.md` - training, evaluation, QA, and helper script guide.
 
+## What Is Done vs. Intentionally Not Bundled
+
+Done and included:
+
+- A working installable ingestion package and Typer CLI.
+- Unit tests and documentation consistency tests.
+- A no-private-data mock ingestion demo.
+- Final report, sharing plan, presentation materials, final figures, and figure reproduction notebook.
+- Data-preparation, training, evaluation, Claude benchmark, and QA scripts.
+- Browser-based generator, evaluator, and QA review prototypes.
+- Small non-private fixtures for tests, demos, and final figure reproduction.
+
+Intentionally not bundled:
+
+- Full raw training splits, because they are large and may include partner-controlled material.
+- Prepared `data/training_v2/` splits, because they are regenerated from raw training data.
+- LoRA checkpoints and adapter weights, because they are large model artifacts.
+- Raw generated evaluation JSONL outputs, because the repository uses reduced aggregate fixtures for reproducibility.
+- API keys and local SQLite databases.
+
 ## Final Deliverables
 
 | Deliverable | Path | Purpose |
@@ -80,6 +100,7 @@ The repository includes small fixtures, not the full corpus. Their provenance is
 | `test_chunk_counts.json` | Prompt/document fragmentation figure |
 | `eval_summary.json` | Fallback aggregate evaluation figure |
 | `eval_scores.jsonl` | Fallback per-record score distribution figure |
+| `final_report_metrics.json` | Final report Figures 2-7 aggregate plotting data |
 
 The full training data is intentionally excluded from git. It is described in `data/training/README.md`.
 

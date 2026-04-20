@@ -13,14 +13,13 @@
 
 module purge
 module load Miniforge3
-conda activate legal-sum
+conda activate "${CONDA_ENV:-legal-sum}"
 
-PROJECT_DIR=/mnt/research/Civil_Rights_Summaries/Fragmentation
-REPO_DIR="$PROJECT_DIR/CivilRightsSummarizedAI"
-RAW_DATA="$PROJECT_DIR/output/First_Train"
-OUTPUT_DIR="$REPO_DIR/data/training_v2"
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}"
+RAW_DATA="${RAW_DATA_DIR:-$PROJECT_DIR/data/training}"
+OUTPUT_DIR="${PREP_DATA_DIR:-$PROJECT_DIR/data/training_v2}"
 
-cd "$REPO_DIR"
+cd "$PROJECT_DIR" || { echo "FATAL: Cannot cd to $PROJECT_DIR"; exit 1; }
 
 mkdir -p "$OUTPUT_DIR"
 

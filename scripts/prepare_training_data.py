@@ -11,21 +11,21 @@ Strategies:
 Usage:
     # Strategy 1: Priority filter (fast, no API needed)
     python scripts/prepare_training_data.py \\
-        --input First_Train/train.jsonl \\
+        --input data/training/train.jsonl \\
         --output data/training_v2/train.jsonl \\
         --strategy priority_filter \\
         --max-tokens 24000
 
     # Strategy 2: Structured with timeline + importance labels
     python scripts/prepare_training_data.py \\
-        --input First_Train/train.jsonl \\
+        --input data/training/train.jsonl \\
         --output data/training_v2/train_structured.jsonl \\
         --strategy structured \\
         --max-tokens 24000
 
     # Strategy 3: Two-stage extraction with Claude API (best quality)
     python scripts/prepare_training_data.py \\
-        --input First_Train/train.jsonl \\
+        --input data/training/train.jsonl \\
         --output data/training_v2/train_extracted.jsonl \\
         --strategy extract_first \\
         --max-tokens 24000 \\
@@ -34,14 +34,14 @@ Usage:
 
     # Strategy 3 fallback: Heuristic extraction (no API, lower quality)
     python scripts/prepare_training_data.py \\
-        --input First_Train/train.jsonl \\
+        --input data/training/train.jsonl \\
         --output data/training_v2/train_extracted_heuristic.jsonl \\
         --strategy extract_first \\
         --max-tokens 24000
 
     # Dry run (show stats without writing):
     python scripts/prepare_training_data.py \\
-        --input First_Train/test.jsonl \\
+        --input data/training/test.jsonl \\
         --strategy priority_filter \\
         --max-tokens 24000 \\
         --dry-run --sample 20
@@ -804,16 +804,16 @@ def main():
 Examples:
   # Quick test with stats:
   python scripts/prepare_training_data.py \\
-      --input First_Train/train.jsonl --strategy priority_filter --dry-run --sample 50
+      --input data/training/train.jsonl --strategy priority_filter --dry-run --sample 50
 
   # Full run with structured prompts:
   python scripts/prepare_training_data.py \\
-      --input First_Train/train.jsonl --output data/training_v2/train.jsonl \\
+      --input data/training/train.jsonl --output data/training_v2/train.jsonl \\
       --strategy structured --max-tokens 24000
 
   # Two-stage extraction with Claude API (best quality):
   python scripts/prepare_training_data.py \\
-      --input First_Train/train.jsonl --output data/training_v2/train_extracted.jsonl \\
+      --input data/training/train.jsonl --output data/training_v2/train_extracted.jsonl \\
       --strategy extract_first --extraction-backend claude \\
       --cache-dir data/extraction_cache --max-tokens 24000
         """,

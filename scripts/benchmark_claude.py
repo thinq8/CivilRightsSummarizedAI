@@ -16,9 +16,9 @@ Usage:
     export ANTHROPIC_API_KEY=sk-ant-...
     python scripts/benchmark_claude.py \\
         --model claude-sonnet-4-5 \\
-        --test-file /Users/liamsandy/Documents/Legal/First_Train/test.jsonl \\
+        --test-file data/training/test.jsonl \\
         --num-samples 50 \\
-        --output-file /Users/liamsandy/Documents/Legal/Polish/eval2/eval_claude_sonnet.jsonl
+        --output-file eval_claude_sonnet.jsonl
 
     # Cheap baseline:
     python scripts/benchmark_claude.py --model claude-haiku-4-5 ...

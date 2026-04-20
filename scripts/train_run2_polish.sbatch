@@ -16,17 +16,17 @@
 
 module purge
 module load Miniforge3
-conda activate legal-sum
+conda activate "${CONDA_ENV:-legal-sum}"
 
-PROJECT_DIR=/mnt/research/Civil_Rights_Summaries/Fragmentation
+PROJECT_DIR="${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}"
 export HF_HOME="$PROJECT_DIR/.hf_cache"
 export HF_HUB_CACHE="$HF_HOME/hub"
 export TRANSFORMERS_CACHE="$HF_HUB_CACHE"
 
-cd "$PROJECT_DIR"
+cd "$PROJECT_DIR" || { echo "FATAL: Cannot cd to $PROJECT_DIR"; exit 1; }
 
-PREP_DATA="$PROJECT_DIR/training_v2"
-RUN_DIR="$PROJECT_DIR/runs/qwen25_7b_lora_run2"
+PREP_DATA="${PREP_DATA_DIR:-$PROJECT_DIR/data/training_v2}"
+RUN_DIR="${RUN_DIR:-$PROJECT_DIR/runs/qwen25_7b_lora_run2}"
 
 # Find the latest checkpoint automatically (expected: checkpoint-3000)
 LATEST_CKPT=$(ls -d "$RUN_DIR"/checkpoint-* 2>/dev/null | sort -t- -k2 -n | tail -1)
@@ -42,7 +42,7 @@ echo "Target: complete 3 epochs, fully anneal LR"
 echo "Wall time: 12:00:00"
 echo "============================================"
 
-python3 Scripts/train_lora.py \
+python3 scripts/train_lora.py \
     --model-name Qwen/Qwen2.5-7B-Instruct \
     --train-file "$PREP_DATA/train.jsonl" \
     --val-file "$PREP_DATA/val.jsonl" \

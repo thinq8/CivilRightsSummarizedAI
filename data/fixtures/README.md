@@ -1,29 +1,28 @@
 # Fixture Data
 
-This directory contains small, shareable files used for tests, demos, and figure reproduction. These files are intentionally not the full training corpus.
+This directory contains small, shareable data artifacts for tests, demos, and figure reproduction. It does not contain the full training corpus, private source text, reference summaries, model checkpoints, or raw model outputs.
 
-## Files
-
-| File | Purpose | Provenance |
-|------|---------|------------|
-| `mock_dataset.json` | Deterministic two-case fixture for mock ingestion tests and the out-of-the-box demo | Hand-built safe fixture matching the subset of the Clearinghouse API shape used by the ingestion pipeline |
-| `trainer_state.json` | Source data for the training-loss figure | Extracted from the successful LoRA training run's `trainer_state.json`; contains training/eval loss log history, not model weights |
-| `test_chunk_counts.json` | Source data for the document-fragmentation figure | Extracted from metadata fields in the 1,231-record private test split; excludes source document text and reference summaries |
-| `eval_summary.json` | Fallback aggregate metrics for evaluation comparison figures | Produced from the 50-case evaluation sample after running generation, scoring, and QA triage |
-| `eval_scores.jsonl` | Fallback per-record scores for judge/score distribution figures | Reduced evaluation output used only for plotting; excludes full private source documents |
+| File | Purpose | Provenance | Contains private text? | Contains model outputs? | Used by |
+|------|---------|------------|------------------------|-------------------------|---------|
+| `mock_dataset.json` | Deterministic two-case ingestion fixture | Hand-built synthetic Clearinghouse-like records matching the API shape used by the ingestion pipeline | No | No | `pytest`, `python -m clearinghouse.cli ingest-mock` |
+| `trainer_state.json` | Training dynamics plot input | Reduced Hugging Face Trainer log history from the successful LoRA run | No | No | Figure 1, `notebooks/figure_instructions.ipynb` |
+| `test_chunk_counts.json` | Document fragmentation metadata | Extracted counts from the 1,231-record test split without document text or summaries | No | No | Legacy checks and context for Figure 2 |
+| `eval_summary.json` | Aggregate evaluation fixture from the earlier four-figure notebook | Reduced aggregate metrics from the evaluation pipeline | No | No | Backward-compatible figure fallback |
+| `eval_scores.jsonl` | Per-record reduced score fixture from the earlier four-figure notebook | Reduced score rows from evaluation output, without source documents or full summaries | No | No | Backward-compatible figure fallback |
+| `final_report_metrics.json` | Final seven-figure report plotting fixture | Reduced aggregate metrics from report tables, scored CSVs, QA JSONL summaries, and attribution summaries | No | No | Figures 2-7, `notebooks/figure_instructions.ipynb` |
 
 ## Why Fixtures Exist
 
-The full project used large JSONL training and evaluation files derived from Clearinghouse case records. Those files are too large for git and can include partner-controlled material. The fixtures keep the public repository reproducible enough for grading:
+The full project used large JSONL files derived from Clearinghouse case records and human-written summaries. Those files are too large for git and may include partner-controlled material. The fixtures keep the public repository useful for review:
 
 - Unit tests run without API credentials.
 - The mock ingestion demo creates a real SQLite database.
-- Figure reproduction works even when the full model outputs are unavailable.
-- Reviewers can inspect the data shape without downloading gigabytes of training data.
+- The final figure notebook reproduces all seven final report figures from non-private aggregate data.
+- Reviewers can inspect the data shape and pipeline without downloading gigabytes of training data.
 
-## Regenerating Fixture-Like Artifacts
+## Regenerating Larger Artifacts
 
-The full training split lives outside git as:
+Raw training splits belong outside git:
 
 ```text
 data/training/train.jsonl
@@ -31,7 +30,7 @@ data/training/val.jsonl
 data/training/test.jsonl
 ```
 
-Model-ready prepared data is regenerated with:
+Prepared training data is regenerated with:
 
 ```bash
 python scripts/prepare_training_data.py \
@@ -50,4 +49,4 @@ python evaluate.py results/generations_claude_*.jsonl --judge-sample 25
 cd ..
 ```
 
-See `TUTORIAL.md` for the full local, HPCC, evaluation, and figure workflow.
+See [TUTORIAL.md](../../TUTORIAL.md) for the full local, HPCC, evaluation, QA, and figure workflow.

@@ -2,25 +2,30 @@
 
 These tools are partner-facing prototypes. They are designed to be easy to open and inspect, not to replace the Clearinghouse production website.
 
-## Tool Summary
-
-| Tool | How to run | What it does |
-|------|------------|--------------|
-| `summary_qa_standalone.html` | Open directly in a browser | Paste one summary and run structural QA checks offline |
-| `case-summary-generator.html` | Use through `clearinghouse_api_proxy.py` or open directly for pasted data | Draft a summary from case metadata, selected source documents, or API-loaded case data |
-| `case-summary-evaluator.html` | Use through `clearinghouse_api_proxy.py` or open directly for imported packages | Review a generated package, run local QA, optionally compare to a reference, and export feedback |
-| `clearinghouse_api_proxy.py` | `python tools/clearinghouse_api_proxy.py` | Serves the browser tools on localhost and forwards only Clearinghouse API v2.1 requests |
-| `case_review_tool.py` | Python CLI | Batch reference-free review with structural QA and optional Claude source-citation judging |
-| `case_review_tool.html` | Open directly in a browser | Earlier single-page review dashboard retained for reference |
-
-## Recommended Partner Workflow
-
-1. Start the local proxy:
+One-command local demo:
 
 ```bash
 python tools/clearinghouse_api_proxy.py
 ```
 
+Then open <http://127.0.0.1:8765/>.
+
+## Tool Summary
+
+| Tool | How to run | What it does |
+|------|------------|--------------|
+| Tool | Key requirement | What it does |
+|------|-----------------|--------------|
+| `summary_qa_standalone.html` | Browser only | Paste one summary and run structural QA checks offline |
+| `case-summary-generator.html` | Browser; API token only for live loading | Draft a summary from case metadata, selected source documents, or API-loaded case data |
+| `case-summary-evaluator.html` | Browser; `ANTHROPIC_API_KEY` only for optional Claude judging | Review a generated package, run local QA, optionally compare to a reference, and export feedback |
+| `clearinghouse_api_proxy.py` | Python | Serves the browser tools on localhost and forwards only Clearinghouse API v2.1 requests |
+| `case_review_tool.py` | Python; `ANTHROPIC_API_KEY` only for judge mode | Batch reference-free review with structural QA and optional Claude source-citation judging |
+| `case_review_tool.html` | Browser only | Earlier single-page review dashboard retained for reference |
+
+## Recommended Partner Workflow
+
+1. Start the local proxy with `python tools/clearinghouse_api_proxy.py`.
 2. Open <http://127.0.0.1:8765/>.
 3. Generate a draft from metadata-only input for a thin/simple case, or metadata plus selected documents for a complex case.
 4. Export the generator package.
