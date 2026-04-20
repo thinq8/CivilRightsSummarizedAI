@@ -35,7 +35,7 @@ The Civil Rights Litigation Clearinghouse maintains one of the most comprehensiv
 6. A cost/quality benchmark against Claude Sonnet 4.6 (run interactively through Claude Code)
 7. A standalone QA triage CLI (`summary_qa.py`) with a self-contained HTML dashboard
 8. A pair of partner-facing standalone browser tools: a case-summary generator and evaluator that support metadata-only drafting, metadata-plus-document drafting, source review, Claude judging, and human feedback export
-9. A single showcase notebook (`project_showcase.ipynb`) that runs end-to-end from bundled artifacts
+9. A figure-reproduction notebook (`notebooks/figure_instructions.ipynb`) that regenerates the report figures from bundled non-private fixtures
 
 ### 2.4 Why summarizing legal cases is different from generic summarization
 
@@ -156,7 +156,7 @@ We also added two post-MVP layers:
 
 In addition to the batch training and evaluation pipeline, we built two standalone browser tools intended to match the Clearinghouse's existing lightweight HTML-tool workflow.
 
-The first tool, `tools/case-summary-generator.html`, creates draft case summaries from either structured metadata alone or structured metadata plus selected source documents. It can load case metadata and document records from the Clearinghouse API by case ID, or fall back to pasted/uploaded JSON and source chunks. Because local browser files cannot reliably make authenticated cross-origin API requests, we include `tools/clearinghouse_api_proxy.py`, a small localhost-only launcher/proxy that serves the tool and forwards only Clearinghouse API v2.1 requests. This keeps the tool freestanding for staff testing without integrating with the Clearinghouse production codebase.
+The first tool, `tools/case-summary-generator.html`, creates draft case summaries from either structured metadata alone or structured metadata plus selected source documents. It can load case metadata and document records from the Clearinghouse API by case ID, or fall back to pasted/uploaded JSON and source chunks. Because local browser files cannot reliably make authenticated cross-origin API requests, we include `tools/clearinghouse_api_proxy.py`, a small localhost-only launcher/proxy that serves the tool and forwards only Clearinghouse API v2.1 requests. This keeps the tool freestanding for staff testing.
 
 The second tool, `tools/case-summary-evaluator.html`, imports the generator's `crlc-summary-package-v1` JSON output and runs the same kind of human-in-the-loop review used elsewhere in the project. It applies local structural QA checks without an API key, optionally compares against a reference summary, optionally asks Claude Sonnet 4.6 or Haiku 4.5 to judge sentence-level source grounding, and exports reviewer feedback as JSON.
 
@@ -168,35 +168,36 @@ These tools do not replace editorial review. They operationalize the hybrid reco
 
 ### 5.1 Training dynamics
 
-Run 2 trained cleanly. The training-loss EMA minimum landed at step 3000; it drifted upward for the remaining 690 steps. Naive practice is to ship the final checkpoint; instead we evaluated both.
+Run 2 trained cleanly. The training-loss EMA minimum landed near step 2960; the nearest saved checkpoint was step 3000. Loss drifted upward for the remaining 690 steps. Naive practice is to ship the final checkpoint; instead we evaluated both.
 
-![Figure 1 — Training loss with EMA smoothing. The green dashed line marks the EMA minimum (step 3000); the red dashed line marks the final checkpoint (step 3690). Token accuracy and learning-rate schedule are on the right.](figures/figure1_training_dynamics.png)
+![Figure 1 — Training loss with EMA smoothing. The green dashed line marks the EMA minimum near step 2960; the red dashed line marks the final checkpoint at step 3690. Token accuracy and learning-rate schedule are on the right.](figures/figure1_training_dynamics.png)
 
-*Figure 1 — Training loss with EMA smoothing. The green dashed line marks the EMA minimum (step 3000); the red dashed line marks the final checkpoint (step 3690). Token accuracy and learning-rate schedule are on the right.*
+*Figure 1 — Training loss with EMA smoothing. The green dashed line marks the EMA minimum near step 2960; the red dashed line marks the final checkpoint at step 3690. Token accuracy and learning-rate schedule are on the right.*
 
 ### 5.2 Head-to-head: ckpt-3000 vs ckpt-3690 (the overfit finding)
 
 Same 50 test cases, same seed, same prompt template. ckpt-3000 is the earlier (EMA-minimum) checkpoint, ckpt-3690 is the final checkpoint.
 
-| Metric | ckpt-3000 | ckpt-3690 | Winner |
-|--------|-----------|-----------|--------|
-| Mean ROUGE-1 | 0.390 | 0.381 | ckpt-3000 |
-| Head-to-head ROUGE-1 wins (of 50) | 28 | 22 | ckpt-3000 |
+| Metric | ckpt-3000 | ckpt-3690 | Readout |
+|--------|-----------|-----------|---------|
+| Mean ROUGE-1 | 0.370 | 0.385 | ckpt-3690 slightly higher by mean |
+| Paired ROUGE-1 wins (of 50) | 29 | 21 | ckpt-3000 |
+| Paired metric wins across ROUGE/BERTScore | 146 | 104 | ckpt-3000 |
 | QA **PASS** rate | **14%** | **2%** | ckpt-3000 |
 | QA REVIEW rate | 40% | 26% | — |
 | QA **REJECT** rate | **46%** | **72%** | ckpt-3000 |
 | Attribution PRIMARY | 81.4% | 72.5% | ckpt-3000 |
-| Garbled-date hallucinations | 0% | 32% of outputs | ckpt-3000 |
+| Garbled-date QA flags | 7 | 48 | ckpt-3000 |
 
-![Figure 3 — Head-to-head across five reference-based metrics on the same 50 test cases. ckpt-3000 wins on every axis; the margin is small in raw ROUGE but the downstream QA consequences are large.](figures/figure3_checkpoint_comparison.png)
+![Figure 3 — Mean ROUGE and BERTScore comparison for ckpt-3000 and ckpt-3690 on the same 50 test cases. Aggregate scores are close, so the paired wins and QA results are needed to see the overfit failure clearly.](figures/figure3_checkpoint_comparison.png)
 
-*Figure 3 — Head-to-head across five reference-based metrics on the same 50 test cases. ckpt-3000 wins on every axis, the margin is small in raw ROUGE but the downstream QA consequences are large.*
+*Figure 3 — Mean ROUGE and BERTScore comparison for ckpt-3000 and ckpt-3690 on the same 50 test cases. Aggregate scores are close, so the paired wins and QA results are needed to see the overfit failure clearly.*
 
-**The lesson:** The model Overfit by the end. Training for longer demonstrably broke the model. Always hold out at least one earlier checkpoint and compare empirically. The extra evaluation cost was trivial compared to the cost of shipping the worse model.
+**The lesson:** The model overfit by the end. Training for longer made the model structurally worse even when aggregate reference metrics looked close. Always hold out at least one earlier checkpoint and compare empirically. The extra evaluation cost was trivial compared to the cost of shipping the worse model.
 
 ### 5.3 The date-hallucination fingerprint
 
-The most interesting technical artifact of overfitting: ckpt-3690 produces strings like `"August 23, 210"`, `"2120"`, `"2k00"`, `"21020"` throughout its outputs. The model memorized the *pattern* of a filing date ("Month D, YYYY in the U.S. District Court for the...") but lost the ability to reproduce the exact year digits. ckpt-3000 does this in 0% of outputs while ckpt-3690 does it in 32%. Likely this can be fixed by either a larger base model or paying for a frontier model.
+The most interesting technical artifact of overfitting: ckpt-3690 produces strings like `"August 23, 210"`, `"2120"`, `"2k00"`, `"21020"` throughout some outputs. The model memorized the *pattern* of a filing date ("Month D, YYYY in the U.S. District Court for the...") but lost the ability to reproduce the exact year digits. Automated QA found 48 garbled-date flags for ckpt-3690, compared with 7 for ckpt-3000. Likely this can be fixed by either a larger base model or paying for a frontier model.
 
 ### 5.4 Metadata-only baseline — what does \$0 and zero documents get you?
 
@@ -209,16 +210,16 @@ We ran stock `Qwen2.5-7B-Instruct` (base model, no LoRA) on the same 50 cases us
 | QA REJECT rate | 46% | 72% | **0%** |
 | Attribution PRIMARY | 81.4% | 72.5% | **84.0%** |
 | Unsupported sentences (50 cases) | 133 | 13 | **0** |
-| Garbled dates | — | 32% | **0%** |
+| Garbled-date QA flags | 7 | 48 | **0** |
 | Runtime (50 cases on A100) | ~25 min | ~25 min | **8.4 min** |
 
 ![Figure 4 — QA triage status across all four systems. The metadata-only baseline is the only one with zero rejections. The overfit checkpoint rejects 72% of its own outputs. Claude Sonnet 4.6's 28% reject rate is inflated by format-mismatch false positives on prose style summaries (see §5.5).](figures/figure4_qa_triage_3systems.png)
 
 *Figure 4 — QA triage status across all four systems. The metadata-only baseline is the only one with zero rejections. The overfit checkpoint rejects 72% of its own outputs. Claude Sonnet 4.6's 28% reject rate is inflated by format-mismatch false positives on prose-style summaries (see §5.5).*
 
-![Figure 5 — Source attribution on the same 50 cases. Each bar shows, across all sentences of the predicted summaries, what fraction had a strong (green), weak (amber), or no (red) match against the source documents using TF-IDF cosine similarity.](figures/figure5_source_attribution.png)
+![Figure 5 — Source attribution on the same 50 cases. The left panel shows mean primary source coverage per case; the right panel includes both primary and weak support matches using TF-IDF cosine similarity.](figures/figure5_source_attribution.png)
 
-*Figure 5 — Source attribution on the same 50 cases. Each bar shows, across all sentences of the predicted summaries, what fraction had a strong (green), weak (amber), or no (red) match against the source documents using TF-IDF cosine similarity.*
+*Figure 5 — Source attribution on the same 50 cases. The left panel shows mean primary source coverage per case; the right panel includes both primary and weak support matches using TF-IDF cosine similarity.*
 
 **What the metadata model does well.** It cannot say anything that isn't in the structured fields, so every factual statement is grounded by construction. Zero hallucinated dates, zero regurgitation, zero rejections, 52% PASS rate which is better than either LoRA checkpoint.
 
@@ -230,18 +231,18 @@ The standalone generator implements this split directly. Reviewers can choose a 
 
 ### 5.5 Cost / quality vs Claude Sonnet
 
-We ran Claude Sonnet 4.6 on the same 50 test cases through Claude Code, and scored its outputs with the same ROUGE / BERTScore / `summary_qa.py` pipeline as every other system. The API-equivalent cost is a rough pricing estimate for the same Sonnet model if it were called directly through the Anthropic API with prompt caching.
+We ran Claude Sonnet 4.6 on the same 50 test cases through Claude Code, and scored its outputs with the same ROUGE / BERTScore / `summary_qa.py` pipeline as every other system. The measured run had no per-case marginal API charge because it used Claude Code through a subscription; the API-equivalent point is a rough estimate for calling the same Sonnet model directly with prompt caching.
 
 | System | Mean ROUGE-1 | Mean BERTScore F1 | QA PASS | QA REJECT | Avg pred length | Cost / case |
 |--------|-------------:|------------------:|--------:|---------:|----------------:|------------:|
 | ckpt-3000 (self-hosted) | 0.370 | 0.053 | 14% | 46% | 668 words | $0 (GPU depreciated) |
 | ckpt-3690 (overfit) | 0.385 | 0.078 | 2% | 72% | 331 words | $0 |
-| Qwen7B metadata-only | 0.368 | — | **52%** | **0%** | 235 words | $0 |
-| **Claude Sonnet 4.6 (Claude Code)** | **0.463** | **0.196** | 32% | 28% | 218 words | ~$0.42 |
+| Qwen7B metadata-only | 0.368 | — | **52%** | **0%** | 316 words | $0 |
+| **Claude Sonnet 4.6 (Claude Code)** | **0.463** | **0.196** | 32% | 28% | 218 words | $0 marginal; ~$0.08 API est. |
 
-![Figure 6 — Cost vs. quality on the 50-case test sample. Claude Code (Sonnet 4.6) costs around 47 cents and sits at the quality ceiling.](figures/figure6_cost_quality.png)
+![Figure 6 — Cost vs. quality on the 50-case test sample. Claude Code (Sonnet 4.6) is shown as a subscription run with zero marginal per-case API cost, plus an approximate direct API estimate of eight cents per case.](figures/figure6_cost_quality.png)
 
-*Figure 6 — Cost vs. quality on the 50-case test sample. Claude Code (Sonnet 4.6) costs around 47 cents and sits at the quality ceiling.*
+*Figure 6 — Cost vs. quality on the 50-case test sample. Claude Code (Sonnet 4.6) is shown as a subscription run with zero marginal per-case API cost, plus an approximate direct API estimate of eight cents per case.*
 
 **What the measured numbers say.**
 
@@ -252,22 +253,22 @@ We ran Claude Sonnet 4.6 on the same 50 test cases through Claude Code, and scor
 
 **Practical Conclusion — A Hybrid Pipeline**
 
-- **Small volumes (<1,000 cases).** Claude Code or another frontier LLM is inexpensive at this level the qaulity is higher and the context longer.
+- **Small volumes (<1,000 cases).** Claude Code or another frontier LLM is inexpensive at this level; the quality is higher and the context is longer.
 - **Best hybrid.** Draft with ckpt-3000 or metadata-only depending on case thinness, triage with `summary_qa.py`, route `PASS` to ship, `REVIEW` to a human editor, and `REJECT` to Sonnet through Claude Code with an explicit editorial template prompt.
 
 ### 5.6 Failure-mode gallery
 
 Some qualitative failures are consistent, repeatable, and programmatically detectable, which is why the QA tool works. The top failure modes across ckpt-3690 (299 flags across 50 summaries):
 
-- `GARBLED_DATE` (32% of outputs) — 3-digit "years", glyph substitutions like `2k00`.
-- `RAW_DOC_LEAK` (18%) — `[DOCUMENT]`, `Title:`, `<|user|>` tokens bleeding into the summary.
-- `LENGTH_COLLAPSE` (14%) — outputs under 30 words, missing required sections.
-- `REPETITION_LOOP` (6%) — the same clause repeated 3+ times.
-- `MISSING_FILING_DATE` (22%) — required editorial element absent.
+- `GARBLED_DATE` (48 flags) — 3-digit "years", glyph substitutions like `2k00`.
+- `MISSING_ACTION_TYPE` (43 records) — class-vs-individual action not stated explicitly.
+- `JUDGE_REJECT` (33 records) — LLM judge gave an overall rejection.
+- `MISSING_REMEDY` (26 records) — requested or obtained relief was not stated.
+- `MISSING_STATUTE` (18 records) — legal authority such as Section 1983 was missing.
 
-![Figure 7 — Top failure modes detected by summary_qa.py across the 50 ckpt-3690 summaries. Bars are colored by severity (red=critical, amber=warning, grey=info). 299 total flags across the 50 summaries.](figures/figure7_flag_frequency.png)
+![Figure 7 — Top failure modes detected by summary_qa.py across the 50 ckpt-3690 summaries. Bars are colored by severity: red for critical, amber for warning, and blue for info. 299 total flags across the 50 summaries.](figures/figure7_flag_frequency.png)
 
-*Figure 7 — Top failure modes detected by `summary_qa.py` across the 50 ckpt-3690 summaries. Bars are colored by severity (red = critical, amber = warning, grey = info). 299 total flags across the 50 summaries.*
+*Figure 7 — Top failure modes detected by `summary_qa.py` across the 50 ckpt-3690 summaries. Bars are colored by severity: red for critical, amber for warning, and blue for info. 299 total flags across the 50 summaries.*
 
 Each flag has a severity (critical / warning / info), a machine-readable code, a human-readable message, and evidence pulled from the prediction.
 
@@ -334,83 +335,163 @@ The tools export JSON at both stages. The generator emits a `crlc-summary-packag
 
 ## 9. Reproducibility
 
-### 9.1 Repository
+This repository is now organized around three reproducibility paths: a public grader path that needs no private data, an optional live API/partner-tool path, and a full ML/HPCC path for people with the large external artifacts. The short setup checklist is in [`INSTALL.md`](INSTALL.md), the full walkthrough is in [`TUTORIAL.md`](TUTORIAL.md), and the final deliverable index is in [`FINAL_SUBMISSION.md`](FINAL_SUBMISSION.md).
+
+### 9.1 Repository and start point
 
 <https://github.com/thinq8/CivilRightsSummarizedAI>
 
-### 9.2 Installation
+Recommended reviewer order:
 
-See [`INSTALL.md`](INSTALL.md) for the full setup. Short version:
+1. [`INSTALL.md`](INSTALL.md) for setup, tests, and the mock ingestion demo.
+2. [`TUTORIAL.md`](TUTORIAL.md) for the complete walkthrough.
+3. [`FINAL_SUBMISSION.md`](FINAL_SUBMISSION.md) for the data-flow diagram and artifact map.
+4. [`notebooks/figure_instructions.ipynb`](notebooks/figure_instructions.ipynb) for report figure reproduction.
+
+### 9.2 Public grader path: no private data, no keys, no GPU
+
+This path is the minimum reproducibility path for a grader. It uses only bundled fixtures and a local Python virtual environment. It does not require conda, Clearinghouse credentials, Anthropic credentials, model checkpoints, or private training splits.
 
 ```bash
 git clone https://github.com/thinq8/CivilRightsSummarizedAI.git
 cd CivilRightsSummarizedAI
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-cp .env.example .env   # fill in CLEARINGHOUSE_API_KEY if ingesting fresh data
-pytest -q              # 4 tests, all should pass
+
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip "setuptools<82" wheel
+python -m pip install -e ".[dev]"
+pytest -q
+python -m clearinghouse.cli ingest-mock
 ```
 
-### 9.3 Running the demos
+Expected results:
 
-The reproducible research demo is `notebooks/project_showcase.ipynb`. It runs end-to-end from the bundled artifacts in `data/fixtures/` — no API keys, no GPU, no Clearinghouse credentials needed.
+- `pytest -q` exits with zero failures; the current public repo reports 7 passing tests.
+- `python -m clearinghouse.cli ingest-mock` prints `cases=2 dockets=2 documents=4 errors=0`.
+- The mock demo creates `data/dev.db`, which is a local gitignored SQLite database.
+
+### 9.3 Report figure reproduction
 
 ```bash
-jupyter lab notebooks/project_showcase.ipynb
-# Then: Run All
+python -m pip install -e ".[ml]"
+jupyter notebook notebooks/figure_instructions.ipynb
 ```
 
-Every figure in this report is generated by that notebook. 28 code cells, ~3 minutes to run top-to-bottom.
+Run all cells. The notebook uses the original generated artifacts from the project workspace when they are available next to the repository, matching the calculations first used in `project_showcase.ipynb`. If those large/private artifacts are absent, it falls back to `data/fixtures/final_report_metrics.json` plus small reduced fixtures documented in [`data/fixtures/README.md`](data/fixtures/README.md). These fixtures contain aggregate metrics only; they do not include private source text, reference summaries, full model outputs, API keys, or model weights.
 
-The partner-facing browser tools live in `tools/`.
+The notebook saves the seven final report figures:
 
-For local QA only:
+- `figures/figure1_training_dynamics.png`
+- `figures/figure2_prompt_length_distribution.png`
+- `figures/figure3_checkpoint_comparison.png`
+- `figures/figure4_qa_triage_3systems.png`
+- `figures/figure5_source_attribution.png`
+- `figures/figure6_cost_quality.png`
+- `figures/figure7_flag_frequency.png`
+
+### 9.4 Live API and partner-tool path
+
+This path is optional and requires approved external credentials.
+
+- Clearinghouse live ingestion requires `CLEARINGHOUSE_API_TOKEN`.
+  - API quick start: <https://api.clearinghouse.net/quick-start>
+  - Access request: <https://www.clearinghouse.net/api-request>
+- Claude generation or judging requires `ANTHROPIC_API_KEY`.
+
+Small live ingestion smoke test:
 
 ```bash
-open tools/summary_qa_standalone.html
+export CLEARINGHOUSE_API_TOKEN="Token YOUR_TOKEN_HERE"
+python -m clearinghouse.cli ingest-live --case-limit 5
 ```
 
-For the case-summary generator/evaluator workflow with live Clearinghouse API import:
+Partner-facing browser tool workflow:
 
 ```bash
 python tools/clearinghouse_api_proxy.py
 # Then open http://127.0.0.1:8765/
 ```
 
-The generator opens at `http://127.0.0.1:8765/`. The evaluator opens at `http://127.0.0.1:8765/case-summary-evaluator.html`. Live import requires a Clearinghouse API token. Generation and LLM judging require an Anthropic API key.
-
-### 9.4 Reproducing the evaluation numbers
-
-All evaluation artifacts are bundled:
-
-- `eval/outputs/eval_ckpt3000.jsonl`, `eval_ckpt3690.jsonl` — model predictions
-- `eval/outputs/eval_ckpt*_scored.csv` — ROUGE + BERTScore per record
-- `eval/outputs/qa_report_ckpt*/qa_report.jsonl` — QA triage output
-- `eval/outputs/attribution_*.jsonl` — source attribution
-- `eval/outputs/eval_meta_baseline_qwen7b.jsonl` — metadata-only baseline predictions
-
-The notebook loads these directly; it does not regenerate them. To regenerate:
+The generator opens at `http://127.0.0.1:8765/`. The evaluator opens at `http://127.0.0.1:8765/case-summary-evaluator.html`. For offline paste-in QA only:
 
 ```bash
-# Model eval (requires GPU + checkpoint)
-python scripts/eval_checkpoint_v2.py --checkpoint runs/qwen25_7b_lora_run2/checkpoint-3000 \
-  --test data/training/test.jsonl --output eval/outputs/eval_ckpt3000.jsonl
-
-# QA triage (CPU only)
-python scripts/summary_qa.py --input eval/outputs/eval_ckpt3000.jsonl \
-  --output-dir eval/outputs/qa_report_ckpt3000/ --title "ckpt-3000 QA"
-
-# Metadata-only baseline (requires GPU)
-sbatch final-additions/metadata-baseline/slurm/qwen_meta_baseline.sbatch
+open tools/summary_qa_standalone.html
 ```
 
-### 9.5 Tests
+See [`tools/README.md`](tools/README.md) for the one-command local proxy demo and the generator/evaluator JSON package flow.
+
+### 9.5 Full ML and HPCC reproduction path
+
+This path is not required for the basic grader path. It requires the external artifacts intentionally excluded from git:
+
+- raw training splits in `data/training/train.jsonl`, `data/training/val.jsonl`, and `data/training/test.jsonl`;
+- prepared splits in `data/training_v2/`, which can be regenerated from the raw splits;
+- LoRA checkpoints under `runs/qwen25_7b_lora_run2/`;
+- raw evaluation JSONL/CSV outputs, if regenerating the aggregate fixture from scratch.
+
+Prepare data locally or on HPCC:
 
 ```bash
-pytest -q   # Expected: 4 passed
+mkdir -p data/training_v2
+python scripts/prepare_training_data.py \
+  --input data/training/train.jsonl \
+  --output data/training_v2/train.jsonl \
+  --strategy extract_first \
+  --max-tokens 24000 \
+  --extraction-backend heuristic
 ```
 
-### 9.6 Standalone tool outputs
+Run the canonical HPCC training job:
+
+```bash
+module purge
+module load Miniforge3
+conda activate legal-sum
+sbatch scripts/train_run2.sbatch
+```
+
+Conda appears only in the HPCC path because MSU ICER exposes Python/CUDA through cluster modules. Local reviewers should use the virtual environment in §9.2.
+
+Evaluate a checkpoint:
+
+```bash
+python scripts/eval_checkpoint_v2.py \
+  --checkpoint-dir runs/qwen25_7b_lora_run2/checkpoint-3000 \
+  --test-file data/training_v2/test.jsonl \
+  --num-samples 50 \
+  --output-file eval_ckpt3000.jsonl
+```
+
+Run structural QA:
+
+```bash
+python scripts/summary_qa.py \
+  --input eval_ckpt3000.jsonl \
+  --output-dir qa_report_ckpt3000
+```
+
+QA status meanings:
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| `PASS` | No critical or warning flags | Candidate for normal editorial review |
+| `REVIEW` | Warning flags present | Human editor should inspect before use |
+| `REJECT` | Critical flags present | Regenerate or heavily edit before use |
+
+The reduced aggregate fixture used by the figure notebook records the final 50-case evaluation results. It is intentionally smaller and safer than committing full predictions, reference summaries, source documents, or model checkpoints.
+
+### 9.6 Verification commands
+
+```bash
+pytest -q
+python -m compileall -q scripts tools src eval
+python -m clearinghouse.cli ingest-mock
+git diff --check
+```
+
+The repository also includes a lightweight documentation consistency test that checks for stale figure names, missing linked files in top-level docs, and missing final figure PNGs.
+
+### 9.7 Standalone tool outputs
 
 The standalone generator and evaluator exchange JSON rather than writing to the training/evaluation directories automatically.
 
@@ -423,9 +504,10 @@ The package contains the case metadata, selected source chunks, generation mode,
 
 ## 10. Acknowledgments
 
-- **Civil Rights Litigation Clearinghouse** at the University of Michigan Law School — community partner, data source, editorial expertise, and the reason this problem is worth working on.
+- **Civil Rights Litigation Clearinghouse** at the University of Michigan Law School — community partner, data source, editorial expertise. For giving us the oppurtunity. 
 - **MSU Institute for Cyber-Enabled Research (ICER)** for HPCC GPU resources (A100 80GB, H200).
-- **Professor and course instructors, CMSE 495** for feedback across the milestone submissions.
+- **Dr Dirk Colbry and Dr Justin Gambrell CMSE 495** for feedback across the milestone submissions.
+- **Maryam Berijanian** for advising us throughout the whole process
 
 ---
 

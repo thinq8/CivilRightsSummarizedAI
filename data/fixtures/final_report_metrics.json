@@ -1,135 +1,446 @@
 {
   "provenance": {
-    "description": "Reduced aggregate plotting data for the final report figures. This file contains no private source text, no reference summaries, and no generated model outputs.",
+    "generated_from": "Original project_showcase.ipynb calculations and local generated artifacts in ../",
+    "source_artifacts": {
+      "test_split": "First_Train/test.jsonl",
+      "trainer_state": "Polish/checkpoint-3690/trainer_state.json",
+      "ckpt3000_scored": "eval_ckpt3000_scored.csv",
+      "ckpt3690_scored": "Polish/Eval2/eval_ckpt3690_scored.csv",
+      "claude_scored": "eval_claude_code_scored.csv",
+      "metadata_eval": "final-additions/metadata-baseline/outputs/eval_meta_baseline_qwen7b.jsonl",
+      "qa_ckpt3000": "Polish/Eval2/qa_report_ckpt3000/qa_report.jsonl",
+      "qa_ckpt3690": "Polish/Eval2/qa_report_ckpt3690/qa_report.jsonl",
+      "qa_metadata": "final-additions/metadata-baseline/outputs/qa_qwen7b_meta/qa_report.jsonl",
+      "qa_claude": "qa_report_claude_code/qa_report.jsonl",
+      "attr_ckpt3000": "final-additions/attribution/outputs/attribution_ckpt3000.jsonl",
+      "attr_ckpt3690": "final-additions/attribution/outputs/attribution_ckpt3690.jsonl",
+      "attr_metadata": "final-additions/attribution/outputs/attribution_meta_qwen7b.jsonl"
+    },
+    "privacy": "Aggregate metrics only. No source document text, reference summaries, model predictions, API keys, or model weights are included.",
     "contains_private_text": false,
-    "contains_model_outputs": false,
-    "created_from": [
-      "REPORT.md",
-      "eval_ckpt3000_scored.csv",
-      "eval_ckpt3690_scored.csv",
-      "eval_claude_code_scored.csv",
-      "qa_report.jsonl outputs",
-      "attribution summary JSONL outputs"
-    ],
-    "sample_size": 50
+    "contains_model_outputs": false
   },
   "prompt_length_distribution": {
-    "context_window_tokens": 32000,
-    "raw_fit_rate": 0.55,
-    "median_tokens": 27000,
+    "n": 1231,
+    "mean_estimated_tokens": 67719.0,
+    "median_estimated_tokens": 27192.0,
+    "max_estimated_tokens": 2530331.5,
+    "fit_32k_pct": 54.0,
+    "fit_200k_pct": 92.9,
     "bins": [
-      {"label": "0-4K", "count": 120, "upper_tokens": 4000},
-      {"label": "4-8K", "count": 160, "upper_tokens": 8000},
-      {"label": "8-16K", "count": 190, "upper_tokens": 16000},
-      {"label": "16-32K", "count": 207, "upper_tokens": 32000},
-      {"label": "32-64K", "count": 250, "upper_tokens": 64000},
-      {"label": "64-128K", "count": 180, "upper_tokens": 128000},
-      {"label": ">128K", "count": 124, "upper_tokens": null}
-    ]
+      {
+        "label": "0-4K",
+        "min_tokens": 0,
+        "max_tokens": 4000,
+        "count": 124
+      },
+      {
+        "label": "4-8K",
+        "min_tokens": 4000,
+        "max_tokens": 8000,
+        "count": 134
+      },
+      {
+        "label": "8-16K",
+        "min_tokens": 8000,
+        "max_tokens": 16000,
+        "count": 205
+      },
+      {
+        "label": "16-32K",
+        "min_tokens": 16000,
+        "max_tokens": 32000,
+        "count": 202
+      },
+      {
+        "label": "32-64K",
+        "min_tokens": 32000,
+        "max_tokens": 64000,
+        "count": 229
+      },
+      {
+        "label": "64-128K",
+        "min_tokens": 64000,
+        "max_tokens": 128000,
+        "count": 173
+      },
+      {
+        "label": ">128K",
+        "min_tokens": 128000,
+        "max_tokens": null,
+        "count": 164
+      }
+    ],
+    "cdf_percentiles": {
+      "0": 127.2,
+      "5": 2209.0,
+      "10": 3955.2,
+      "15": 5579.2,
+      "20": 7461.8,
+      "25": 9620.8,
+      "30": 11611.8,
+      "35": 14327.8,
+      "40": 17827.2,
+      "45": 21887.4,
+      "50": 27192.0,
+      "55": 33423.0,
+      "60": 40314.5,
+      "65": 48928.9,
+      "70": 57792.8,
+      "75": 69567.6,
+      "80": 91786.0,
+      "85": 117203.6,
+      "90": 158075.0,
+      "95": 245292.4,
+      "100": 2530331.5
+    }
   },
-  "checkpoint_comparison": [
-    {
-      "system": "ckpt-3000",
-      "rouge1": 0.370,
+  "systems": {
+    "ckpt-3000": {
+      "rouge1": 0.37,
       "rouge2": 0.1697,
       "rougeL": 0.2172,
+      "rougeLsum": 0.2932,
       "bertscore_f1": 0.0531,
-      "qa_pass_rate": 0.14,
-      "qa_reject_rate": 0.46,
-      "primary_attribution": 0.8012,
-      "garbled_date_rate": 0.00,
-      "avg_prediction_words": 667.6
+      "prediction_len": 667.62,
+      "reference_len": 626.26
     },
-    {
-      "system": "ckpt-3690",
+    "ckpt-3690": {
       "rouge1": 0.3846,
       "rouge2": 0.1546,
       "rougeL": 0.2136,
+      "rougeLsum": 0.3178,
       "bertscore_f1": 0.0783,
-      "qa_pass_rate": 0.02,
-      "qa_reject_rate": 0.72,
-      "primary_attribution": 0.7055,
-      "garbled_date_rate": 0.32,
-      "avg_prediction_words": 331.4
-    }
-  ],
-  "qa_triage": [
-    {"system": "ckpt-3000", "pass": 7, "review": 20, "reject": 23},
-    {"system": "ckpt-3690", "pass": 1, "review": 13, "reject": 36},
-    {"system": "Qwen7B metadata-only", "pass": 26, "review": 24, "reject": 0},
-    {"system": "Claude Sonnet", "pass": 16, "review": 20, "reject": 14}
-  ],
-  "source_attribution": [
-    {
-      "system": "ckpt-3000",
-      "primary": 0.8012,
-      "weak_supported": 0.0963,
-      "unsupported": 0.1025,
-      "unsupported_count": 133
+      "prediction_len": 331.44,
+      "reference_len": 626.26,
+      "judge_overall": 1.36
     },
-    {
-      "system": "ckpt-3690",
-      "primary": 0.7055,
-      "weak_supported": 0.2745,
-      "unsupported": 0.0199,
-      "unsupported_count": 13
+    "Qwen7B metadata-only": {
+      "rouge1": 0.3679,
+      "rouge2": 0.1283,
+      "rougeL": 0.1825,
+      "rougeLsum": 0.2848,
+      "prediction_len": 315.56,
+      "input_tokens": 650.0,
+      "output_tokens": 403.02
     },
-    {
-      "system": "Qwen7B metadata-only",
-      "primary": 0.8403,
-      "weak_supported": 0.1597,
-      "unsupported": 0.0,
-      "unsupported_count": 0
+    "Claude Code (Sonnet 4.6)": {
+      "rouge1": 0.4628,
+      "rouge2": 0.2128,
+      "rougeL": 0.2516,
+      "rougeLsum": 0.3408,
+      "bertscore_f1": 0.1961,
+      "prediction_len": 218.16,
+      "reference_len": 340.16
     }
-  ],
+  },
+  "pairwise_checkpoint_wins": {
+    "rouge1": {
+      "ckpt3000": 29,
+      "ckpt3690": 21,
+      "ties": 0
+    },
+    "rouge2": {
+      "ckpt3000": 31,
+      "ckpt3690": 19,
+      "ties": 0
+    },
+    "rougeL": {
+      "ckpt3000": 30,
+      "ckpt3690": 20,
+      "ties": 0
+    },
+    "rougeLsum": {
+      "ckpt3000": 27,
+      "ckpt3690": 23,
+      "ties": 0
+    },
+    "bertscore_f1": {
+      "ckpt3000": 29,
+      "ckpt3690": 21,
+      "ties": 0
+    }
+  },
+  "qa_triage": {
+    "ckpt-3000": {
+      "n": 50,
+      "counts": {
+        "PASS": 7,
+        "REVIEW": 20,
+        "REJECT": 23
+      },
+      "percent": {
+        "PASS": 14.0,
+        "REVIEW": 40.0,
+        "REJECT": 46.0
+      }
+    },
+    "ckpt-3690": {
+      "n": 50,
+      "counts": {
+        "PASS": 1,
+        "REVIEW": 13,
+        "REJECT": 36
+      },
+      "percent": {
+        "PASS": 2.0,
+        "REVIEW": 26.0,
+        "REJECT": 72.0
+      }
+    },
+    "Qwen7B metadata-only": {
+      "n": 50,
+      "counts": {
+        "PASS": 26,
+        "REVIEW": 24,
+        "REJECT": 0
+      },
+      "percent": {
+        "PASS": 52.0,
+        "REVIEW": 48.0,
+        "REJECT": 0.0
+      }
+    },
+    "Claude Code (Sonnet 4.6)": {
+      "n": 50,
+      "counts": {
+        "PASS": 16,
+        "REVIEW": 20,
+        "REJECT": 14
+      },
+      "percent": {
+        "PASS": 32.0,
+        "REVIEW": 40.0,
+        "REJECT": 28.0
+      }
+    }
+  },
+  "source_attribution": {
+    "ckpt-3000": {
+      "cases": 50,
+      "primary_pct": 81.4,
+      "supported_pct": 96.8,
+      "unsupported_count": 133,
+      "trivial_count": 78
+    },
+    "ckpt-3690": {
+      "cases": 50,
+      "primary_pct": 72.5,
+      "supported_pct": 98.1,
+      "unsupported_count": 13,
+      "trivial_count": 39
+    },
+    "Qwen7B metadata-only": {
+      "cases": 50,
+      "primary_pct": 84.0,
+      "supported_pct": 100.0,
+      "unsupported_count": 0,
+      "trivial_count": 0
+    }
+  },
   "cost_quality": [
     {
-      "system": "ckpt-3000",
-      "rouge1": 0.370,
+      "system": "ckpt-3000 (self-hosted)",
+      "rouge1": 0.37,
       "bertscore_f1": 0.0531,
-      "qa_pass_rate": 0.14,
-      "qa_reject_rate": 0.46,
       "cost_per_case_usd": 0.0,
-      "avg_prediction_words": 667.6
-    },
-    {
-      "system": "ckpt-3690",
-      "rouge1": 0.3846,
-      "bertscore_f1": 0.0783,
-      "qa_pass_rate": 0.02,
-      "qa_reject_rate": 0.72,
-      "cost_per_case_usd": 0.0,
-      "avg_prediction_words": 331.4
+      "cost_note": "Marginal inference cost treated as $0 after training; cluster/GPU time still required."
     },
     {
       "system": "Qwen7B metadata-only",
-      "rouge1": 0.368,
+      "rouge1": 0.3679,
       "bertscore_f1": null,
-      "qa_pass_rate": 0.52,
-      "qa_reject_rate": 0.0,
       "cost_per_case_usd": 0.0,
-      "avg_prediction_words": 235.0
+      "cost_note": "Local base-model inference using metadata only."
     },
     {
-      "system": "Claude Sonnet",
+      "system": "Claude Code Sonnet 4.6 (subscription)",
       "rouge1": 0.4628,
       "bertscore_f1": 0.1961,
-      "qa_pass_rate": 0.32,
-      "qa_reject_rate": 0.28,
-      "cost_per_case_usd": 0.42,
-      "avg_prediction_words": 218.2
+      "cost_per_case_usd": 0.0,
+      "cost_note": "Measured interactive run through Claude Code subscription; not metered per API call."
+    },
+    {
+      "system": "Claude Sonnet API estimate",
+      "rouge1": 0.4628,
+      "bertscore_f1": 0.1961,
+      "cost_per_case_usd": 0.08,
+      "cost_note": "Approximate direct API equivalent from project_showcase.ipynb, assuming prompt caching."
     }
   ],
+  "ckpt3690_flag_frequency": [
+    {
+      "code": "GARBLED_DATE",
+      "count": 48,
+      "records": 6,
+      "severity": "critical"
+    },
+    {
+      "code": "MISSING_ACTION_TYPE",
+      "count": 43,
+      "records": 43,
+      "severity": "info"
+    },
+    {
+      "code": "JUDGE_REJECT",
+      "count": 33,
+      "records": 33,
+      "severity": "critical"
+    },
+    {
+      "code": "MISSING_REMEDY",
+      "count": 26,
+      "records": 26,
+      "severity": "info"
+    },
+    {
+      "code": "MISSING_STATUTE",
+      "count": 18,
+      "records": 18,
+      "severity": "warning"
+    },
+    {
+      "code": "JUDGE_WEAK",
+      "count": 16,
+      "records": 16,
+      "severity": "warning"
+    },
+    {
+      "code": "MISSING_OUTCOME",
+      "count": 15,
+      "records": 15,
+      "severity": "info"
+    },
+    {
+      "code": "LENGTH_TOO_SHORT_VS_REF",
+      "count": 15,
+      "records": 15,
+      "severity": "warning"
+    },
+    {
+      "code": "LOW_ROUGE",
+      "count": 15,
+      "records": 15,
+      "severity": "warning"
+    },
+    {
+      "code": "MISSING_COURT",
+      "count": 15,
+      "records": 15,
+      "severity": "warning"
+    },
+    {
+      "code": "SUSPICIOUS_SPELLING",
+      "count": 12,
+      "records": 12,
+      "severity": "warning"
+    },
+    {
+      "code": "MISSING_FILING_DATE",
+      "count": 10,
+      "records": 10,
+      "severity": "warning"
+    }
+  ],
+  "checkpoint_comparison": {
+    "rouge1": {
+      "ckpt3000": 29,
+      "ckpt3690": 21,
+      "ties": 0
+    },
+    "rouge2": {
+      "ckpt3000": 31,
+      "ckpt3690": 19,
+      "ties": 0
+    },
+    "rougeL": {
+      "ckpt3000": 30,
+      "ckpt3690": 20,
+      "ties": 0
+    },
+    "rougeLsum": {
+      "ckpt3000": 27,
+      "ckpt3690": 23,
+      "ties": 0
+    },
+    "bertscore_f1": {
+      "ckpt3000": 29,
+      "ckpt3690": 21,
+      "ties": 0
+    }
+  },
   "flag_frequency": [
-    {"code": "GARBLED_DATE", "count": 48, "severity": "critical"},
-    {"code": "MISSING_ACTION_TYPE", "count": 43, "severity": "warning"},
-    {"code": "JUDGE_REJECT", "count": 33, "severity": "critical"},
-    {"code": "MISSING_REMEDY", "count": 26, "severity": "warning"},
-    {"code": "MISSING_STATUTE", "count": 18, "severity": "warning"},
-    {"code": "JUDGE_WEAK", "count": 16, "severity": "warning"},
-    {"code": "MISSING_OUTCOME", "count": 15, "severity": "warning"},
-    {"code": "LENGTH_TOO_SHORT_VS_REF", "count": 15, "severity": "warning"},
-    {"code": "LOW_ROUGE", "count": 15, "severity": "info"},
-    {"code": "MISSING_COURT", "count": 15, "severity": "warning"}
+    {
+      "code": "GARBLED_DATE",
+      "count": 48,
+      "records": 6,
+      "severity": "critical"
+    },
+    {
+      "code": "MISSING_ACTION_TYPE",
+      "count": 43,
+      "records": 43,
+      "severity": "info"
+    },
+    {
+      "code": "JUDGE_REJECT",
+      "count": 33,
+      "records": 33,
+      "severity": "critical"
+    },
+    {
+      "code": "MISSING_REMEDY",
+      "count": 26,
+      "records": 26,
+      "severity": "info"
+    },
+    {
+      "code": "MISSING_STATUTE",
+      "count": 18,
+      "records": 18,
+      "severity": "warning"
+    },
+    {
+      "code": "JUDGE_WEAK",
+      "count": 16,
+      "records": 16,
+      "severity": "warning"
+    },
+    {
+      "code": "MISSING_OUTCOME",
+      "count": 15,
+      "records": 15,
+      "severity": "info"
+    },
+    {
+      "code": "LENGTH_TOO_SHORT_VS_REF",
+      "count": 15,
+      "records": 15,
+      "severity": "warning"
+    },
+    {
+      "code": "LOW_ROUGE",
+      "count": 15,
+      "records": 15,
+      "severity": "warning"
+    },
+    {
+      "code": "MISSING_COURT",
+      "count": 15,
+      "records": 15,
+      "severity": "warning"
+    },
+    {
+      "code": "SUSPICIOUS_SPELLING",
+      "count": 12,
+      "records": 12,
+      "severity": "warning"
+    },
+    {
+      "code": "MISSING_FILING_DATE",
+      "count": 10,
+      "records": 10,
+      "severity": "warning"
+    }
   ]
 }

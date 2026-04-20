@@ -5,11 +5,11 @@ This directory contains small, shareable data artifacts for tests, demos, and fi
 | File | Purpose | Provenance | Contains private text? | Contains model outputs? | Used by |
 |------|---------|------------|------------------------|-------------------------|---------|
 | `mock_dataset.json` | Deterministic two-case ingestion fixture | Hand-built synthetic Clearinghouse-like records matching the API shape used by the ingestion pipeline | No | No | `pytest`, `python -m clearinghouse.cli ingest-mock` |
-| `trainer_state.json` | Training dynamics plot input | Reduced Hugging Face Trainer log history from the successful LoRA run | No | No | Figure 1, `notebooks/figure_instructions.ipynb` |
+| `trainer_state.json` | Training dynamics plot input | Reduced Hugging Face Trainer log history from `Polish/checkpoint-3690/trainer_state.json`, the same source used in `project_showcase.ipynb` | No | No | Figure 1, `notebooks/figure_instructions.ipynb` |
 | `test_chunk_counts.json` | Document fragmentation metadata | Extracted counts from the 1,231-record test split without document text or summaries | No | No | Legacy checks and context for Figure 2 |
 | `eval_summary.json` | Aggregate evaluation fixture from the earlier four-figure notebook | Reduced aggregate metrics from the evaluation pipeline | No | No | Backward-compatible figure fallback |
 | `eval_scores.jsonl` | Per-record reduced score fixture from the earlier four-figure notebook | Reduced score rows from evaluation output, without source documents or full summaries | No | No | Backward-compatible figure fallback |
-| `final_report_metrics.json` | Final seven-figure report plotting fixture | Reduced aggregate metrics from report tables, scored CSVs, QA JSONL summaries, and attribution summaries | No | No | Figures 2-7, `notebooks/figure_instructions.ipynb` |
+| `final_report_metrics.json` | Final seven-figure report plotting fixture | Reduced aggregate metrics extracted with the original `project_showcase.ipynb` logic from scored CSVs, QA JSONL reports, attribution JSONL reports, and prompt-length metadata | No | No | Figures 2-7, `notebooks/figure_instructions.ipynb` |
 
 ## Why Fixtures Exist
 
@@ -17,7 +17,7 @@ The full project used large JSONL files derived from Clearinghouse case records 
 
 - Unit tests run without API credentials.
 - The mock ingestion demo creates a real SQLite database.
-- The final figure notebook reproduces all seven final report figures from non-private aggregate data.
+- The final figure notebook uses the original local project artifacts when they are present next to the repository, and otherwise reproduces all seven final report figures from non-private aggregate data.
 - Reviewers can inspect the data shape and pipeline without downloading gigabytes of training data.
 
 ## Regenerating Larger Artifacts
