@@ -1,6 +1,6 @@
 # Civil Rights Summarized AI
 
-Civil Rights Summarized AI is a CMSE 495 capstone project for the Civil Rights Litigation Clearinghouse. It ingests case records, prepares long legal-document bundles for summarization, fine-tunes a Qwen2.5-7B LoRA model, evaluates generated summaries, and provides lightweight QA/review tools for partner feedback.
+Multi-document legal case summarization pipeline for the Civil Rights Litigation Clearinghouse using ingestion, LoRA fine-tuning, and automated evaluation.
 
 ## Start Here
 
