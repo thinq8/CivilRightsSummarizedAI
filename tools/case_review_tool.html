@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Summary Evaluator · Civil Rights Clearinghouse</title>
+<style>
+:root {
+  --navy: #00274C; --navy-light: #0d3a5c;
+  --gold: #FFCB05; --gold-soft: #fff1ae;
+  --cream: #faf8f5; --cream-dark: #f0ede8;
+  --text: #1f2937; --muted: #6b7280; --border: #d1d5db; --card: #fff;
+  --green: #16a34a; --gbg: #dcfce7;
+  --amber: #b45309; --abg: #fef3c7;
+  --red: #dc2626; --rbg: #fee2e2;
+  --blue: #2563eb; --bbg: #dbeafe;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--cream); color: var(--text); line-height: 1.55;
+}
+
+/* ── Header ── */
+header {
+  background: var(--navy); color: #fff; padding: 1rem 2rem;
+  border-bottom: 4px solid var(--gold);
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+}
+header h1 { font-size: 1.3rem; font-weight: 700; }
+header .sub { color: var(--gold); font-size: .78rem; margin-top: 2px; }
+
+/* ── Layout ── */
+.page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.4rem; margin-bottom: 1.25rem;
+}
+.card-title {
+  font-size: .75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--muted); margin-bottom: .9rem;
+  padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+}
+
+/* ── Form elements ── */
+.field { margin-bottom: 1rem; }
+.field label {
+  display: block; font-size: .8rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em;
+  color: var(--muted); margin-bottom: .35rem;
+}
+textarea, input[type="text"], input[type="password"], select {
+  width: 100%; padding: .65rem .85rem; border: 1px solid var(--border);
+  border-radius: 6px; background: #fff; font-family: inherit;
+  font-size: .95rem; color: var(--text); transition: border-color .15s;
+}
+textarea:focus, input:focus, select:focus {
+  outline: none; border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(0,39,76,.1);
+}
+textarea { resize: vertical; line-height: 1.6; }
+#summary-input { min-height: 200px; }
+#sources-input { min-height: 140px; font-size: .88rem; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:640px) { .field-row { grid-template-columns: 1fr; } }
+
+/* File upload drop zone */
+.drop-zone {
+  border: 2px dashed var(--border); border-radius: 6px;
+  padding: .5rem .85rem; text-align: center; font-size: .78rem;
+  color: var(--muted); cursor: pointer; margin-top: .4rem;
+  transition: border-color .15s, background .15s;
+}
+.drop-zone:hover, .drop-zone.over {
+  border-color: var(--navy); background: var(--cream-dark);
+}
+.drop-zone input[type="file"] { display: none; }
+
+/* API key row */
+.api-row {
+  display: flex; gap: .75rem; align-items: flex-end; flex-wrap: wrap;
+  margin-top: .5rem;
+}
+.api-row .field { flex: 1; min-width: 240px; margin-bottom: 0; }
+.api-key-note {
+  font-size: .72rem; color: var(--muted); margin-top: .3rem;
+  padding: .4rem .6rem; background: var(--cream-dark); border-radius: 4px;
+}
+
+/* ── Buttons ── */
+.btn-row { display: flex; gap: .65rem; flex-wrap: wrap; margin-top: 1rem; }
+button {
+  font-family: inherit; font-size: .9rem; font-weight: 600;
+  padding: .65rem 1.25rem; border-radius: 6px; border: none; cursor: pointer;
+  transition: background .15s;
+}
+.btn-primary { background: var(--navy); color: #fff; }
+.btn-primary:hover { background: var(--navy-light); }
+.btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+.btn-secondary { background: #fff; color: var(--navy); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--navy); background: var(--cream-dark); }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px dashed var(--border); font-size: .82rem; padding: .5rem 1rem; }
+.btn-ghost:hover { border-color: var(--navy); color: var(--navy); }
+
+/* ── Spinner ── */
+#spinner { display: none; align-items: center; gap: .75rem;
+  padding: 1rem; color: var(--muted); font-size: .9rem; }
+#spinner.visible { display: flex; }
+.spin-ring {
+  width: 22px; height: 22px; border: 3px solid var(--border);
+  border-top-color: var(--navy); border-radius: 50%;
+  animation: spin .7s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Error banner ── */
+#error-banner {
+  display: none; background: var(--rbg); border: 1px solid #fca5a5;
+  border-radius: 8px; padding: .9rem 1rem; color: #991b1b;
+  font-size: .88rem; margin-bottom: 1.25rem; align-items: center; gap: .5rem;
+}
+#error-banner.visible { display: flex; }
+
+/* ── Results ── */
+#results { display: none; }
+#results.visible { display: block; }
+
+/* Status banner */
+.status-bar {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  padding: .9rem 1.2rem; border-radius: 8px; margin-bottom: 1.25rem;
+  border: 1px solid;
+}
+.status-bar.PASS   { background: var(--gbg); border-color: #86efac; color: #166534; }
+.status-bar.REVIEW { background: var(--abg); border-color: #fcd34d; color: #92400e; }
+.status-bar.REJECT { background: var(--rbg); border-color: #fca5a5; color: #991b1b; }
+.status-badge {
+  font-size: .75rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .08em; padding: .2rem .7rem; border-radius: 999px;
+  background: rgba(0,0,0,.08);
+}
+.status-meta { font-size: .82rem; }
+
+/* Split pane */
+.split { display: grid; grid-template-columns: 1fr 340px; gap: 1.1rem; }
+@media(max-width:820px) { .split { grid-template-columns: 1fr; } }
+.pane-label {
+  font-size: .68rem; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--muted); font-weight: 700; margin-bottom: .5rem;
+}
+
+/* Summary text */
+.summary-body {
+  background: #fff; border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.1rem; font-size: .91rem; line-height: 1.85;
+  max-height: 440px; overflow-y: auto;
+}
+.s-ok   { border-bottom: 1.5px solid #86efac; }
+.s-bad  { border-bottom: 1.5px solid #fca5a5; background: #fff5f5; }
+sup.cref {
+  font-size: .62em; color: var(--blue); cursor: pointer;
+  font-weight: 700; margin-left: 1px;
+}
+sup.cref:hover { text-decoration: underline; }
+.cite-legend {
+  font-size: .72rem; color: var(--muted); margin-top: .5rem;
+  display: flex; gap: .75rem; flex-wrap: wrap;
+}
+.cite-legend span { display: flex; align-items: center; gap: .3rem; }
+.dot { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+
+/* Sources panel */
+.sources-wrap {
+  background: #fff; border: 1px solid var(--border); border-radius: 8px;
+  max-height: 440px; overflow-y: auto;
+}
+.chunk {
+  padding: .75rem .9rem; border-bottom: 1px solid #f3f4f6;
+  font-size: .78rem; line-height: 1.65; transition: background .12s;
+}
+.chunk:last-child { border-bottom: none; }
+.chunk.hl { background: #fefce8; border-left: 3px solid var(--gold); }
+.chunk-hdr { font-weight: 700; color: var(--navy); font-size: .71rem; margin-bottom: .2rem; }
+.chunk-meta { color: var(--muted); font-size: .67rem; margin-bottom: .35rem; }
+.no-sources {
+  padding: 1.25rem; font-size: .82rem; color: var(--muted); text-align: center;
+  font-style: italic;
+}
+
+/* QA flags */
+.flags-section { margin-top: 1.1rem; }
+.flag-list { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+.flag-item {
+  padding: 3px 10px; border-radius: 5px; font-size: .74rem;
+  font-weight: 600; border-left: 3px solid; cursor: default;
+}
+.flag-item:hover { opacity: .85; }
+.fc { background: #fef2f2; border-color: var(--red);  color: #991b1b; }
+.fw { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
+.fi { background: #f9fafb; border-color: #9ca3af; color: #374151; }
+.flag-empty { font-size: .82rem; color: var(--green); font-weight: 600; }
+
+/* Judge scorecard */
+.scorecard { margin-top: 1.1rem; }
+.sc-grid { display: grid; grid-template-columns: 160px 1fr auto; gap: .5rem .75rem; align-items: center; margin-top: .5rem; }
+.sc-dim { font-size: .82rem; }
+.sb-track { height: 6px; background: #e5e7eb; border-radius: 3px; }
+.sb-fill  { height: 6px; border-radius: 3px; }
+.sb-val { font-size: .77rem; font-weight: 700; text-align: right; }
+.rationale { font-size: .8rem; color: var(--muted); font-style: italic; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+.judge-note { font-size: .75rem; color: var(--muted); margin-top: .5rem; }
+
+/* Feedback form */
+.feedback { margin-top: 1.1rem; background: #f0f4ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem; }
+.feedback h3 { font-size: .82rem; font-weight: 700; color: var(--navy); margin-bottom: .75rem; }
+.fb-row { display: flex; gap: .65rem; align-items: center; flex-wrap: wrap; margin-bottom: .55rem; }
+.fb-row label { font-size: .8rem; }
+.fb-row select { width: auto; font-size: .8rem; padding: .25rem .5rem; }
+.fb-row textarea { min-height: 60px; margin-top: .3rem; }
+.fb-checks { display: flex; gap: 1rem; flex-wrap: wrap; }
+.fb-checks label { font-size: .8rem; display: flex; align-items: center; gap: .3rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Case Summary Evaluator</h1>
+    <div class="sub">Civil Rights Litigation Clearinghouse · Quality Review &amp; Judge</div>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- ── Input card ── -->
+  <div class="card" id="input-card">
+    <div class="card-title">Evaluate a Case Summary</div>
+
+    <div class="field">
+      <label for="summary-input">Case Summary <span style="color:var(--red)">*</span></label>
+      <textarea id="summary-input" placeholder="Paste the AI-generated case summary here…"></textarea>
+      <div class="drop-zone" onclick="document.getElementById('summary-file').click()"
+           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)"
+           ondrop="onDrop(event,'summary-input')">
+        <input type="file" id="summary-file" accept=".txt,.md"
+               onchange="loadFile(this,'summary-input')">
+        ↑ or drop / click to upload a .txt file
+      </div>
+    </div>
+
+    <details>
+      <summary style="cursor:pointer;font-size:.82rem;color:var(--blue);margin-bottom:.75rem;font-weight:600;">
+        + Add source documents (enables citation checking)
+      </summary>
+      <div class="field" style="margin-top:.6rem">
+        <label for="sources-input">Source Documents</label>
+        <textarea id="sources-input"
+          placeholder="Paste source document text here. Supports the Chunk N: format from the CRLC pipeline, or plain text."></textarea>
+        <div class="drop-zone" onclick="document.getElementById('sources-file').click()"
+             ondragover="onDragOver(event)" ondragleave="onDragLeave(event)"
+             ondrop="onDrop(event,'sources-input')">
+          <input type="file" id="sources-file" accept=".txt,.jsonl,.md"
+                 onchange="loadFile(this,'sources-input')">
+          ↑ or drop / click to upload
+        </div>
+      </div>
+    </details>
+
+    <!-- API key + model -->
+    <div class="card-title" style="margin-top:1rem">LLM Judge Settings <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional — skip for QA-only)</span></div>
+    <div class="field-row">
+      <div class="field">
+        <label for="api-key">Anthropic API Key</label>
+        <input type="password" id="api-key" placeholder="sk-ant-…">
+        <div class="api-key-note">
+          🔒 Used only to call the Anthropic API directly from your browser. Never sent to any other server.
+        </div>
+      </div>
+      <div class="field">
+        <label for="model-select">Model</label>
+        <select id="model-select">
+          <option value="claude-sonnet-4-6" selected>Claude Sonnet 4.6 (recommended)</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (faster / cheaper)</option>
+          <option value="claude-opus-4-7">Claude Opus 4.7 (highest quality)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="evaluate-btn" onclick="evaluate()">
+        Evaluate &amp; Judge
+      </button>
+      <button class="btn-secondary" onclick="evaluateQAOnly()">
+        QA Check Only
+      </button>
+      <button class="btn-ghost" onclick="loadExample()">
+        Load Example
+      </button>
+      <button class="btn-ghost" onclick="clearAll()">
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Spinner ── -->
+  <div id="spinner">
+    <div class="spin-ring"></div>
+    <span id="spinner-msg">Running quality checks and calling judge…</span>
+  </div>
+
+  <!-- ── Error banner ── -->
+  <div id="error-banner">
+    <strong>Error:</strong>&nbsp;<span id="error-msg"></span>
+  </div>
+
+  <!-- ── Results ── -->
+  <div id="results">
+
+    <!-- Status bar -->
+    <div id="status-bar" class="status-bar PASS">
+      <span id="status-badge" class="status-badge">PASS</span>
+      <span id="status-meta" class="status-meta"></span>
+    </div>
+
+    <!-- Split pane: summary + sources -->
+    <div class="card">
+      <div class="split">
+        <div>
+          <div class="pane-label">
+            Generated Summary
+            <span id="ungrounded-badge" style="margin-left:6px"></span>
+          </div>
+          <div id="summary-rendered" class="summary-body"></div>
+          <div class="cite-legend">
+            <span><span class="dot" style="background:#86efac"></span> Grounded in source</span>
+            <span><span class="dot" style="background:#fca5a5"></span> Not found in source</span>
+          </div>
+        </div>
+        <div>
+          <div class="pane-label">Source Documents (<span id="chunk-count">0</span>)</div>
+          <div id="sources-rendered" class="sources-wrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QA Flags -->
+    <div class="card">
+      <div class="card-title">Structural QA Flags</div>
+      <div id="flags-rendered"></div>
+    </div>
+
+    <!-- Judge Scorecard -->
+    <div class="card" id="scorecard-card">
+      <div class="card-title">Judge Scorecard — Reference-Free</div>
+      <div id="scorecard-rendered"></div>
+    </div>
+
+    <!-- Feedback form -->
+    <div class="card">
+      <div class="card-title">Human Reviewer Feedback</div>
+      <div class="feedback">
+        <h3>Your assessment</h3>
+        <div class="fb-row">
+          <label for="fb-rating">Overall rating:</label>
+          <select id="fb-rating">
+            <option value="">— select —</option>
+            <option value="5">5 — Excellent (publish as-is)</option>
+            <option value="4">4 — Good (minor edits needed)</option>
+            <option value="3">3 — Acceptable (several fixes needed)</option>
+            <option value="2">2 — Poor (substantial rewrite)</option>
+            <option value="1">1 — Unusable</option>
+          </select>
+        </div>
+        <div class="fb-checks">
+          <label><input type="checkbox" id="fb-accurate"> Factually accurate</label>
+          <label><input type="checkbox" id="fb-complete"> All 7 required elements present</label>
+          <label><input type="checkbox" id="fb-publish"> Would publish with minor edits</label>
+        </div>
+        <div style="margin-top:.6rem">
+          <label style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);display:block;margin-bottom:.3rem">Notes / corrections</label>
+          <textarea id="fb-notes" style="min-height:70px"
+            placeholder="Describe any factual errors, missing elements, or style issues…"></textarea>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:.75rem">
+        <button class="btn-primary" onclick="downloadFeedback()">⬇ Download Review JSON</button>
+        <button class="btn-secondary" onclick="evaluateAnother()">Evaluate Another</button>
+      </div>
+    </div>
+
+  </div><!-- /results -->
+</div><!-- /page -->
+
+<script>
+// ──────────────────────────────────────────────────────────────────────────────
+// Judge prompts
+// ──────────────────────────────────────────────────────────────────────────────
+
+const JUDGE_SYSTEM = `You are an expert legal editor for the Civil Rights Litigation Clearinghouse (CRLC).
+You evaluate AI-generated case summaries by checking them directly against the source documents.
+You do NOT have access to a human-written reference summary — your ground truth is the source material.
+
+Required editorial elements for a Clearinghouse case summary:
+  1. Opening sentence conveying the stakes of the case
+  2. Filing date and full formal court name
+  3. Whether class or individual action
+  4. Counsel — for legal-services organizations, identified by name and org
+  5. Causes of action with statutory or constitutional basis (e.g. 42 U.S.C. § 1983)
+  6. Remedies sought
+  7. Key procedural events and final outcome / disposition
+
+Style rules: past tense throughout · "judgment" not "judgement" · acronyms spelled out on first use · encyclopedic prose.`;
+
+function buildJudgePrompt(prediction, chunks) {
+  const srcText = chunks.length
+    ? chunks.map(c => `[CHUNK ${c.index} — ${c.type} · ${c.date}]\n${c.text.slice(0, 2500)}`).join('\n\n')
+    : '(No source documents provided — skip citation extraction, score factual_grounding as 0.)';
+
+  return `SOURCE DOCUMENTS (excerpts from the case file):
+${srcText}
+
+─────────────────────────────────────────────────
+AI-GENERATED SUMMARY:
+${prediction}
+─────────────────────────────────────────────────
+
+Task A — Citation extraction:
+  Split the summary into individual sentences. For each sentence identify which
+  numbered source chunk(s) contain evidence supporting the claim.
+  If no chunk supports a claim set grounded=false and chunks=[].
+
+Task B — Quality scoring (1–5 each):
+  factual_grounding  5=every claim traceable  1=many unsupported claims
+  completeness       5=all 7 elements present  3=misses 1-2  1=covers <half
+  legal_accuracy     5=correct statute/court/parties/cause-of-action
+  outcome_accuracy   5=disposition correctly described  1=wrong or absent
+  overall            5=publishable with minimal edits  1=needs complete rewrite
+
+Respond with ONLY this JSON (no markdown, no other text):
+{
+  "citations": [
+    {"s": 0, "sentence": "First sentence text.", "chunks": [1, 2], "grounded": true},
+    {"s": 1, "sentence": "Second sentence.",      "chunks": [],     "grounded": false}
+  ],
+  "scores": {
+    "factual_grounding": 4,
+    "completeness": 3,
+    "legal_accuracy": 4,
+    "outcome_accuracy": 5,
+    "overall": 4,
+    "rationale": "One sentence summarising the main quality issue."
+  }
+}`;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Structural QA checks (JS port of summary_qa.py key rules)
+// ──────────────────────────────────────────────────────────────────────────────
+
+const MONTHS = 'January|February|March|April|May|June|July|August|September|October|November|December';
+
+function runQA(text) {
+  const flags = [];
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+
+  const flag = (code, severity, msg, evidence) =>
+    flags.push({ code, severity, msg, evidence: evidence || '' });
+
+  // Length
+  if (words < 30)
+    flag('EXTREMELY_SHORT', 'critical', `Only ${words} words — likely truncated or empty.`);
+  else if (words < 80)
+    flag('TOO_SHORT', 'warning', `Only ${words} words. Clearinghouse summaries typically run 150–500 words.`);
+
+  // Raw document / prompt leak
+  if (/\[DOCUMENT\]|\[DOC\]|<\|user\|>|<\|assistant\|>|\[\/INST\]/.test(text))
+    flag('RAW_DOCUMENT_ARTIFACT', 'critical', 'Document formatting tags leaked into the summary.', text.match(/\[DOCUMENT\]|\[DOC\]|<\|user\|>/)?.[0]);
+
+  if (/\b(?:as an ai|here(?:'|')s a summary|based on the (?:provided|above)|i (?:will|am) (?:provide|summarize|now))\b/i.test(text))
+    flag('META_PROMPT_LEAK', 'critical', 'Meta-prompt language detected. Model exposed its instructions.');
+
+  // Garbled dates (ckpt-3690 failure mode: 2k00, 21020, 2oo4)
+  if (/\b\d{1,2}[a-z]{2,4}\d{1,4}\b|\b2[0o][0o]\d\b|\b2[0-9]{4,}\b/.test(text))
+    flag('GARBLED_DATE', 'critical', 'Possible malformed year detected (e.g. "2k00", "21020").', text.match(/\b\d{1,2}[a-z]{2,4}\d{1,4}\b|\b2[0o][0o]\d\b|\b2[0-9]{4,}\b/)?.[0]);
+
+  // Repetition loop
+  const reps = text.match(/(?:\b\w[\w ]{6,40}?\b)(?=.*\b\1\b.*\b\1\b)/g);
+  if (reps && reps.length > 0)
+    flag('REPETITION_LOOP', 'critical', 'Repeated phrase detected — possible generation loop.');
+
+  // Tense
+  const presentCount = (text.match(/\b(?:files|sues|alleges|argues|claims|seeks|brings|challenges|moves|asks)\b/gi) || []).length;
+  if (presentCount > 2)
+    flag('WRONG_TENSE', 'warning', `${presentCount} present-tense verbs found. Clearinghouse style requires past tense.`);
+
+  // "judgement" spelling
+  if (/\bjudgement\b/i.test(text))
+    flag('WRONG_JUDGMENT_SPELLING', 'info', 'Use "judgment" (not "judgement") per Clearinghouse style.');
+
+  // Required elements
+  const hasFilingDate =
+    new RegExp(`(?:filed|commenced|brought|initiated).*?(?:${MONTHS}|\\d{4})`, 'i').test(text) ||
+    /(19|20)\d{2}/.test(text.slice(0, 300));
+  if (!hasFilingDate)
+    flag('MISSING_FILING_DATE', 'warning', 'No filing date found in the first 300 characters.');
+
+  if (!/\b(?:U\.?S\.?\s*District\s*Court|United\s*States\s*District\s*Court|Circuit\s*Court|Court\s*of\s*Appeals|District\s*of)\b/i.test(text))
+    flag('MISSING_COURT', 'warning', 'No court name detected.');
+
+  if (!/\b(?:42\s*U\.?S\.?C\.?|28\s*U\.?S\.?C\.?|Title\s+(?:VII|IX|II|III|IV|VI|VII)|ADA\b|§\s*\d+|First\s+Amendment|Fourth\s+Amendment|Eighth\s+Amendment|Fourteenth\s+Amendment)\b/i.test(text))
+    flag('MISSING_STATUTE', 'warning', 'No statute or constitutional provision detected.');
+
+  if (!/\b(?:damages|injunctive\s+relief|declaratory|consent\s+decree|settlement|back\s*pay|monetary|compensatory|class\s+relief|structural\s+relief)\b/i.test(text))
+    flag('MISSING_REMEDY', 'info', 'No remedy or relief language detected.');
+
+  if (!/\b(?:dismissed|granted|denied|settled|affirmed|reversed|remanded|consent\s+decree|judgment\s+entered|voluntarily\s+dismissed|case\s+closed|terminated)\b/i.test(text))
+    flag('MISSING_OUTCOME', 'info', 'No outcome or disposition language detected.');
+
+  if (!/\b(?:class\s+action|class\s+of|putative\s+class|individual\s+action|pro\s+se|on\s+behalf\s+of\s+(?:herself|himself|themselves))\b/i.test(text))
+    flag('MISSING_ACTION_TYPE', 'info', 'Class vs. individual action not specified.');
+
+  const hasCrit = flags.some(f => f.severity === 'critical');
+  const hasWarn = flags.some(f => f.severity === 'warning');
+  return {
+    flags,
+    status: hasCrit ? 'REJECT' : hasWarn ? 'REVIEW' : 'PASS',
+    wordCount: words,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Source chunk parser (handles Chunk N: format from CRLC pipeline)
+// ──────────────────────────────────────────────────────────────────────────────
+
+const TIER1_RE = /opinion|order|judgment|consent.?decree|settlement/i;
+const TIER4_RE = /docket|pacer|press.?release|correspondence|newsletter/i;
+
+function parseChunks(sourceText) {
+  if (!sourceText.trim()) return [];
+
+  const parts = sourceText.split(/\nChunk \d+:\n/);
+  if (parts.length <= 1) {
+    // Plain text — treat as single source chunk
+    return [{ index: 1, title: 'Source Document', type: 'Document', date: '', tier: 2,
+               text: sourceText.slice(0, 4000) }];
+  }
+
+  const chunks = parts.slice(1).map((part, i) => {
+    const titleM = part.match(/Title:\s*(.+)/);
+    const typeM  = part.match(/Type:\s*(.+)/);
+    const dateM  = part.match(/Date:\s*(.+)/);
+    const title  = titleM ? titleM[1].trim() : `Document ${i + 1}`;
+    const type   = typeM  ? typeM[1].trim()  : 'Document';
+    const date   = dateM  ? dateM[1].trim().split(' ')[0] : '';
+    const tier   = TIER1_RE.test(type) ? 1 : TIER4_RE.test(type) ? 4 : 2;
+    const text   = part.replace(/\[DOCUMENT\][\s\S]*?\n\n/, '').trim();
+    return { index: i + 1, title, type, date, tier, text };
+  });
+
+  return chunks
+    .filter(c => c.tier < 4)
+    .sort((a, b) => a.tier - b.tier)
+    .slice(0, 8); // max 8 chunks to stay within token budget
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Anthropic API caller
+// ──────────────────────────────────────────────────────────────────────────────
+
+async function callClaude(apiKey, model, systemPrompt, userMessage) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMessage }],
+    }),
+  });
+
+  if (!res.ok) {
+    let msg = `API error ${res.status}`;
+    try { msg = (await res.json()).error?.message || msg; } catch (_) {}
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  return data.content[0].text.trim();
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Rendering helpers
+// ──────────────────────────────────────────────────────────────────────────────
+
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function renderSummary(citations, prediction) {
+  if (!citations || !citations.length) {
+    return esc(prediction);
+  }
+  return citations.map(cit => {
+    const cls = cit.grounded ? 's-ok' : 's-bad';
+    const cks = cit.chunks || [];
+    const sup = cks.length
+      ? `<sup class="cref" onclick="hlChunks([${cks}])" title="Source: chunk ${cks.join(',')}">[${cks.join(',')}]</sup>`
+      : '';
+    return `<span class="${cls}" onmouseenter="hov([${cks}])" onmouseleave="unhov([${cks}])">${esc(cit.sentence)}${sup} </span>`;
+  }).join('');
+}
+
+function renderSources(chunks) {
+  if (!chunks || !chunks.length) {
+    return `<div class="no-sources">No source documents provided.<br>Add source text above to enable citation highlighting.</div>`;
+  }
+  return chunks.map(c => `
+    <div class="chunk" id="ck-${c.index}">
+      <div class="chunk-hdr">Chunk ${c.index} — ${esc(c.title)}</div>
+      <div class="chunk-meta">${esc(c.type)} · ${esc(c.date)}</div>
+      <div>${esc((c.text || '').slice(0, 800))}${(c.text || '').length > 800 ? '…' : ''}</div>
+    </div>`).join('');
+}
+
+function renderFlags(flags) {
+  if (!flags.length) {
+    return `<span class="flag-empty">✓ No structural issues detected</span>`;
+  }
+  const items = flags.map(f => {
+    const cls = { critical: 'fc', warning: 'fw', info: 'fi' }[f.severity] || 'fi';
+    const sev = { critical: 'Critical', warning: 'Warning', info: 'Info' }[f.severity] || '';
+    return `<li class="flag-item ${cls}" title="${esc(f.msg)}">${esc(f.code)}<span style="font-weight:400;margin-left:4px;opacity:.7">${sev}</span></li>`;
+  }).join('');
+  return `<ul class="flag-list">${items}</ul>
+    <div style="font-size:.72rem;color:var(--muted);margin-top:.5rem">Hover over a flag for details.</div>`;
+}
+
+const SCORE_DIMS = [
+  ['factual_grounding', 'Factual Grounding'],
+  ['completeness', 'Completeness'],
+  ['legal_accuracy', 'Legal Accuracy'],
+  ['outcome_accuracy', 'Outcome Accuracy'],
+  ['overall', 'Overall Quality'],
+];
+
+function renderScorecard(scores) {
+  if (!scores || !scores.overall) {
+    document.getElementById('scorecard-card').style.display = 'none';
+    return;
+  }
+  document.getElementById('scorecard-card').style.display = '';
+  const rows = SCORE_DIMS.map(([k, label]) => {
+    const v = scores[k] || 0;
+    const pct = Math.round((v / 5) * 100);
+    const col = v >= 4 ? '#16a34a' : v >= 3 ? '#f59e0b' : '#dc2626';
+    return `<span class="sc-dim">${label}</span>
+      <div class="sb-track"><div class="sb-fill" style="width:${pct}%;background:${col}"></div></div>
+      <span class="sb-val" style="color:${col}">${v}/5</span>`;
+  }).join('');
+  const rat = scores.rationale
+    ? `<div class="rationale">${esc(scores.rationale)}</div>` : '';
+  document.getElementById('scorecard-rendered').innerHTML =
+    `<div class="sc-grid">${rows}</div>
+     ${rat}
+     <div class="judge-note">Scores from reference-free LLM judge — evaluated against source documents only.</div>`;
+}
+
+function hlChunks(ids) {
+  document.querySelectorAll('.chunk').forEach(el => el.classList.remove('hl'));
+  ids.forEach(id => {
+    const el = document.getElementById(`ck-${id}`);
+    if (el) { el.classList.add('hl'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  });
+}
+function hov(ids) { ids.forEach(id => { const el = document.getElementById(`ck-${id}`); if (el) el.classList.add('hl'); }); }
+function unhov(ids) { ids.forEach(id => { const el = document.getElementById(`ck-${id}`); if (el) el.classList.remove('hl'); }); }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Main evaluate flow
+// ──────────────────────────────────────────────────────────────────────────────
+
+let _lastResult = {};
+
+function showError(msg) {
+  document.getElementById('error-msg').textContent = msg;
+  document.getElementById('error-banner').classList.add('visible');
+  document.getElementById('spinner').classList.remove('visible');
+  document.getElementById('evaluate-btn').disabled = false;
+}
+
+function hideError() {
+  document.getElementById('error-banner').classList.remove('visible');
+}
+
+async function evaluate() {
+  await _evaluate(true);
+}
+
+async function evaluateQAOnly() {
+  await _evaluate(false);
+}
+
+async function _evaluate(runJudge) {
+  hideError();
+  const summary = document.getElementById('summary-input').value.trim();
+  if (!summary) { showError('Please paste a case summary first.'); return; }
+
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (runJudge && !apiKey) {
+    showError('Please enter your Anthropic API key to run the LLM judge, or click "QA Check Only".');
+    return;
+  }
+
+  const model = document.getElementById('model-select').value;
+  const sourceText = document.getElementById('sources-input').value.trim();
+  const chunks = parseChunks(sourceText);
+
+  // Show spinner
+  document.getElementById('spinner').classList.add('visible');
+  document.getElementById('spinner-msg').textContent = runJudge
+    ? 'Running QA checks and calling judge…'
+    : 'Running structural QA checks…';
+  document.getElementById('evaluate-btn').disabled = true;
+  document.getElementById('results').classList.remove('visible');
+
+  // QA checks (instant)
+  const qa = runQA(summary);
+
+  // LLM judge
+  let citations = [];
+  let judgeScores = null;
+
+  if (runJudge) {
+    try {
+      document.getElementById('spinner-msg').textContent = 'Calling judge (this takes ~15 seconds)…';
+      const userMsg = buildJudgePrompt(summary, chunks);
+      const raw = await callClaude(apiKey, model, JUDGE_SYSTEM, userMsg);
+      // Strip markdown fences if present
+      const cleaned = raw.startsWith('```') ? raw.split('\n').slice(1).join('\n').replace(/```\s*$/, '').trim() : raw;
+      const parsed = JSON.parse(cleaned);
+      citations = parsed.citations || [];
+      judgeScores = parsed.scores || null;
+    } catch (err) {
+      showError(`Judge failed: ${err.message}. Showing QA results only.`);
+      // Continue to show QA results even if judge fails
+    }
+  }
+
+  // Store for feedback download
+  _lastResult = {
+    summary, sourceText, chunks, qa, citations, judgeScores,
+    caseName: summary.split('.')[0].trim().slice(0, 80),
+    timestamp: new Date().toISOString(),
+  };
+
+  // Render
+  renderResults(qa, citations, chunks, judgeScores);
+
+  document.getElementById('spinner').classList.remove('visible');
+  document.getElementById('evaluate-btn').disabled = false;
+  document.getElementById('results').classList.add('visible');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderResults(qa, citations, chunks, judgeScores) {
+  // Status bar
+  const bar = document.getElementById('status-bar');
+  bar.className = `status-bar ${qa.status}`;
+  document.getElementById('status-badge').textContent = qa.status;
+  const ungCount = citations.filter(c => !c.grounded).length;
+  const judgeNote = judgeScores ? ` · Judge overall: ${judgeScores.overall}/5` : '';
+  document.getElementById('status-meta').textContent =
+    `${qa.wordCount} words · ${qa.flags.length} flag(s)${judgeNote}`;
+
+  // Ungrounded badge
+  const ub = document.getElementById('ungrounded-badge');
+  if (ungCount > 0) {
+    ub.innerHTML = `<span style="background:var(--rbg);color:#991b1b;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;">${ungCount} ungrounded</span>`;
+  } else if (citations.length > 0) {
+    ub.innerHTML = `<span style="background:var(--gbg);color:#166534;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;">all grounded</span>`;
+  } else {
+    ub.innerHTML = '';
+  }
+
+  // Summary
+  document.getElementById('summary-rendered').innerHTML =
+    renderSummary(citations, _lastResult.summary);
+
+  // Sources
+  document.getElementById('sources-rendered').innerHTML = renderSources(chunks);
+  document.getElementById('chunk-count').textContent = chunks.length;
+
+  // Flags
+  document.getElementById('flags-rendered').innerHTML = renderFlags(qa.flags);
+
+  // Scorecard
+  renderScorecard(judgeScores);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Feedback download
+// ──────────────────────────────────────────────────────────────────────────────
+
+function downloadFeedback() {
+  const r = _lastResult;
+  const fb = {
+    case_name: r.caseName,
+    reviewer_rating: parseInt(document.getElementById('fb-rating').value) || null,
+    is_accurate: document.getElementById('fb-accurate').checked,
+    is_complete: document.getElementById('fb-complete').checked,
+    would_publish: document.getElementById('fb-publish').checked,
+    notes: document.getElementById('fb-notes').value,
+    qa_status: r.qa?.status,
+    qa_flags: (r.qa?.flags || []).map(f => f.code),
+    judge_scores: r.judgeScores,
+    ungrounded_sentences: (r.citations || []).filter(c => !c.grounded).map(c => c.sentence),
+    word_count: r.qa?.wordCount,
+    timestamp: new Date().toISOString(),
+    tool: 'CRLC Case Review Tool v1.0',
+  };
+  const blob = new Blob([JSON.stringify(fb, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `review_${r.caseName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '').slice(0, 40)}.json`;
+  a.click();
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// File upload / drag-drop
+// ──────────────────────────────────────────────────────────────────────────────
+
+function loadFile(input, targetId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { document.getElementById(targetId).value = e.target.result; };
+  reader.readAsText(file);
+}
+
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('over'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('over'); }
+function onDrop(e, targetId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { document.getElementById(targetId).value = ev.target.result; };
+  reader.readAsText(file);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Utility buttons
+// ──────────────────────────────────────────────────────────────────────────────
+
+function clearAll() {
+  document.getElementById('summary-input').value = '';
+  document.getElementById('sources-input').value = '';
+  document.getElementById('results').classList.remove('visible');
+  hideError();
+}
+
+function evaluateAnother() {
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('summary-input').value = '';
+  document.getElementById('sources-input').value = '';
+  document.getElementById('fb-rating').value = '';
+  document.getElementById('fb-accurate').checked = false;
+  document.getElementById('fb-complete').checked = false;
+  document.getElementById('fb-publish').checked = false;
+  document.getElementById('fb-notes').value = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function loadExample() {
+  document.getElementById('summary-input').value = `United States v. Denver Housing Authority was a Title VII sex discrimination case filed by the United States in the District of Colorado on September 22, 1993. The litigation arose from allegations that the Denver Housing Authority for the City and County of Denver had engaged in unlawful sex discrimination against a former employee, Ms. Rodriguez, in violation of 42 U.S.C. § 2000e et seq. The Department of Justice Civil Rights Division was represented by James R. Allison of the U.S. Attorney's Office in Denver and William B. Fenton of the DOJ Civil Rights Division; the defendant was represented by Elizabeth I. Kiovsky of Baird & Kiovsky, LLC. The case proceeded before Judge John L. Kane of the U.S. District Court for the District of Colorado. At a Rule 16 scheduling conference on December 15, 1993, counsel indicated that a consent decree was imminent. On January 4, 1994, Judge Kane entered a consent decree permanently enjoining the Denver Housing Authority from discriminating against any person on the basis of sex, requiring a back-pay monetary award of $35,000 to Ms. Rodriguez, and mandating that the defendant produce a copy of its sexual harassment policy to government counsel within three months. The decree terminated two years from its entry.`;
+
+  document.getElementById('sources-input').value = `Chunk 1:
+[DOCUMENT]
+Title: Docket (PACER)
+Type: Docket
+Date: 1999-07-15
+
+U.S. District Court, District of Colorado (Denver)
+CIVIL DOCKET FOR CASE #: 1:93-cv-01993-JLK
+USA v. Denver Housing Auth   Date Filed: 09/22/1993
+Assigned to: Judge John L. Kane   Date Terminated: 01/04/1994
+Cause: 42:2000 Job Discrimination (Sex)   Nature of Suit: 442 Civil Rights: Jobs
+
+01/04/1994  CONSENT DECREE by Judge John L. Kane: Dft is enjoined from engaging in any act unlawfully discriminating against any person on the basis of sex; Dft shall offer Ms. Rodriguez a back pay monetary award of $35,000.00; this Decree shall terminate 2 years from date of its entry; within 3 months dft shall provide copy of sexual harassment policy to counsel for USA.
+
+Chunk 2:
+[DOCUMENT]
+Title: Complaint
+Type: Complaint
+Date: 1993-09-22
+
+UNITED STATES OF AMERICA, Plaintiff v. DENVER HOUSING AUTHORITY FOR THE CITY AND COUNTY OF DENVER, Defendant.
+Case No. 1:93-cv-01993
+
+The United States of America alleges that Defendant Denver Housing Authority discriminated against Ms. Rodriguez on the basis of her sex in violation of Title VII of the Civil Rights Act of 1964, 42 U.S.C. § 2000e et seq. Plaintiff seeks injunctive relief, back pay, and other make-whole relief on behalf of Ms. Rodriguez.`;
+
+  // Open the sources details panel
+  document.querySelector('details').open = true;
+}
+</script>
+</body>
+</html>

@@ -276,7 +276,45 @@ python scripts/summary_qa.py \
   --output-dir eval/results/qa_report_local
 ```
 
-## Cell 11: Reproduce Figures
+How to interpret QA:
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| `PASS` | No critical or warning flags | Candidate for normal editorial review |
+| `REVIEW` | Warning flags present | Human editor should inspect before use |
+| `REJECT` | Critical flags present | Regenerate or heavily edit before use |
+
+The QA tool is important because it catches failures that ROUGE can hide. In this project, checkpoint 3690 had similar-looking reference metrics to checkpoint 3000, but many more structural failures, especially malformed dates. That is why the report recommends checkpoint comparison plus QA routing instead of simply shipping the last checkpoint.
+
+## Cell 11: Use the Partner-Facing Tools
+
+The final submission includes standalone tools in `tools/`. They are prototypes for the Clearinghouse workflow, not a production deployment.
+
+Offline single-summary QA:
+
+```bash
+open tools/summary_qa_standalone.html
+```
+
+Generator/evaluator with optional live API loading:
+
+```bash
+python tools/clearinghouse_api_proxy.py
+```
+
+Then open <http://127.0.0.1:8765/>.
+
+Recommended tool flow:
+
+1. Generate a metadata-only draft for a thin/simple case, or a metadata-plus-documents draft for a complex case.
+2. Export the generated package.
+3. Import it into the evaluator.
+4. Run local QA and source review.
+5. Export reviewer feedback JSON.
+
+See `tools/README.md` for details.
+
+## Cell 12: Reproduce Figures
 
 For the course reproducibility check, use the notebook:
 
@@ -286,7 +324,22 @@ jupyter notebook notebooks/figure_instructions.ipynb
 
 Run the cells top to bottom. Figures 1 and 2 use bundled fixture files. Figures 3 and 4 use evaluation results if present; otherwise they fall back to the bundled aggregate fixtures in `data/fixtures/`.
 
-## Cell 12: What to Commit
+## Cell 13: Find the Final Submission Materials
+
+Use `FINAL_SUBMISSION.md` as the final map. It lists every final deliverable and includes a data-flow diagram showing where ingestion, training data preparation, HPCC training, evaluation, QA, figures, and browser tools fit.
+
+Key final files:
+
+- `REPORT.md`
+- `SHARING_PLAN.md`
+- `UofM_SHARING_PLAN.pdf`
+- `20260410_Final_Presentation_Plan_CivilRightsSummarizedAI.md`
+- `20260410_Final_Presentation_Plan_CivilRightsSummarizedAI.pptx`
+- `FINAL_SUBMISSION.md`
+- `scripts/README.md`
+- `tools/README.md`
+
+## Cell 14: What to Commit
 
 Safe to commit:
 

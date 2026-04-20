@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Summary QA Tool · CivilRightsSummarizedAI</title>
+<style>
+  :root {
+    --navy: #00274C;
+    --navy-light: #0d3a5c;
+    --gold: #FFCB05;
+    --gold-soft: #fff1ae;
+    --cream: #faf8f5;
+    --cream-dark: #f0ede8;
+    --text: #1f2937;
+    --text-muted: #5a5a5a;
+    --border: #d9d4cc;
+    --red: #c0392b;
+    --red-bg: #fdecea;
+    --yellow: #b7791f;
+    --yellow-bg: #fff4d4;
+    --green: #1f7a4c;
+    --green-bg: #dff5e7;
+    --gray: #64748b;
+    --card: #ffffff;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 1.25rem 2rem;
+    border-bottom: 4px solid var(--gold);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  header h1 {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  header .subtitle {
+    color: var(--gold);
+    font-size: 0.85rem;
+    margin-top: 2px;
+  }
+  header .header-right {
+    font-size: 0.75rem;
+    text-align: right;
+    opacity: 0.85;
+  }
+  header .header-right .version { opacity: 0.7; }
+  header .header-right a { color: white; text-decoration: none; opacity: 0.9; }
+  header .header-right a:hover { text-decoration: underline; }
+
+  /* Layout */
+  main {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .card h2 {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 1.1rem;
+    margin: 0 0 0.75rem;
+    color: var(--navy);
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 0.4rem;
+    display: inline-block;
+  }
+  .case-info-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 680px) {
+    .case-info-row { grid-template-columns: 1fr; }
+  }
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+  }
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+  input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(0, 39, 76, 0.1);
+  }
+  textarea {
+    min-height: 220px;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: vertical;
+  }
+  textarea#reference {
+    min-height: 150px;
+  }
+
+  /* Buttons */
+  .button-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.7rem 1.25rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  button.primary {
+    background: var(--navy);
+    color: white;
+  }
+  button.primary:hover { background: var(--navy-light); }
+  button.secondary {
+    background: white;
+    color: var(--navy);
+    border-color: var(--border);
+  }
+  button.secondary:hover { border-color: var(--navy); }
+  .toggle-ref {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 0.4rem 0.75rem;
+  }
+  .toggle-ref:hover { border-color: var(--navy); color: var(--navy); }
+
+  .stat-row {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .stat-row strong { color: var(--text); }
+
+  /* Reference panel (collapsible) */
+  #reference-wrap { display: none; margin-top: 1rem; }
+  #reference-wrap.visible { display: block; }
+
+  /* Results */
+  #results { display: none; }
+  #results.visible { display: block; }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.85rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-badge.PASS   { background: var(--green-bg);  color: var(--green); }
+  .status-badge.REVIEW { background: var(--yellow-bg); color: var(--yellow); }
+  .status-badge.REJECT { background: var(--red-bg);    color: var(--red); }
+
+  .summary-line {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+  .chip {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--cream-dark);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .chip.critical { background: var(--red-bg);    color: var(--red); }
+  .chip.warning  { background: var(--yellow-bg); color: var(--yellow); }
+  .chip.info     { background: var(--cream-dark); color: var(--text-muted); }
+
+  /* Flag list */
+  .flags { list-style: none; padding: 0; margin: 0; }
+  .flags li {
+    border-left: 4px solid var(--gray);
+    background: #fafaf8;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+  }
+  .flags li.critical { border-left-color: var(--red);    background: var(--red-bg); }
+  .flags li.warning  { border-left-color: var(--yellow); background: var(--yellow-bg); }
+  .flags li.info     { border-left-color: var(--gray);   background: #f7f7f5; }
+  .flags .code-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.08);
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+  .flags .msg { font-size: 0.93rem; }
+  .flags .evidence {
+    display: block;
+    margin-top: 0.35rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: rgba(0, 0, 0, 0.04);
+    padding: 3px 6px;
+    border-radius: 3px;
+    word-break: break-all;
+  }
+
+  .no-flags {
+    color: var(--green);
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    background: var(--green-bg);
+    border-radius: 6px;
+  }
+
+  /* Metrics grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .metric {
+    background: #fafaf8;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem;
+  }
+  .metric .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 0;
+  }
+  .metric .value {
+    font-family: var(--mono);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  /* Statute table */
+  table.statute-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+  table.statute-table th, table.statute-table td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  table.statute-table th {
+    background: var(--cream-dark);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  .tag {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .tag.match { background: var(--green-bg); color: var(--green); }
+  .tag.uncited { background: var(--yellow-bg); color: var(--yellow); }
+  .tag.unsupported { background: var(--red-bg); color: var(--red); }
+
+  /* Help / legend */
+  details.legend { margin-top: 0.75rem; }
+  details.legend summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--navy);
+    padding: 0.35rem 0;
+  }
+  details.legend table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    font-size: 0.88rem;
+  }
+  details.legend td {
+    padding: 0.35rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  details.legend td:first-child {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    width: 210px;
+    color: var(--navy);
+  }
+
+  footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 2rem 1rem 1rem;
+  }
+  footer a { color: var(--navy); }
+
+  .hint {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    font-style: italic;
+  }
+
+  .rendered-summary {
+    background: #fafaf8;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin-top: 0.5rem;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 0.97rem;
+    line-height: 1.65;
+    max-height: 320px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .hl-flag {
+    background: var(--yellow-bg);
+    border-bottom: 2px solid var(--yellow);
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+  .hl-crit {
+    background: var(--red-bg);
+    border-bottom: 2px solid var(--red);
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Case Summary QA Tool</h1>
+    <div class="subtitle">Civil Rights Litigation Clearinghouse · standalone checker</div>
+  </div>
+  <div class="header-right">
+    <div class="version">v1.0 · offline · CMSE 495 capstone</div>
+    <div>No API key · runs entirely in your browser</div>
+  </div>
+</header>
+
+<main>
+
+  <section class="card">
+    <h2>Paste a summary to check</h2>
+    <div class="case-info-row">
+      <div>
+        <label for="case-name">Case Name (optional)</label>
+        <input type="text" id="case-name" placeholder="e.g., Smith v. Michigan Department of Corrections">
+      </div>
+      <div>
+        <label for="case-id">Clearinghouse # (optional)</label>
+        <input type="text" id="case-id" placeholder="e.g., 14236">
+      </div>
+    </div>
+
+    <div>
+      <label for="prediction">Case Summary</label>
+      <textarea id="prediction" placeholder="Paste the generated or draft case summary here…"></textarea>
+      <p class="hint">Works on AI-generated summaries or human drafts. No text ever leaves your browser.</p>
+    </div>
+
+    <div id="reference-wrap">
+      <label for="reference">Reference Summary (optional — enables ROUGE-ish word overlap, length ratio, statute diff)</label>
+      <textarea id="reference" placeholder="Paste the human reference summary here for comparison checks…"></textarea>
+    </div>
+
+    <div class="button-row">
+      <button class="primary" onclick="runChecks()">Run QA Checks</button>
+      <button class="secondary" onclick="clearAll()">Clear</button>
+      <button class="toggle-ref" onclick="toggleReference()" id="toggle-ref-btn">+ Add reference summary (optional)</button>
+      <button class="secondary" onclick="loadDemo()">Load demo</button>
+    </div>
+  </section>
+
+  <section class="card" id="results">
+    <h2>Results</h2>
+    <div class="summary-line" id="summary-line"></div>
+    <div id="metrics-wrap" style="display:none;">
+      <div class="metrics-grid" id="metrics-grid"></div>
+    </div>
+
+    <div style="margin-top:1.25rem;">
+      <h3 style="font-family:'Source Serif 4',Georgia,serif;margin:0 0 0.4rem;font-size:1rem;color:var(--navy);">Flags</h3>
+      <ul class="flags" id="flag-list"></ul>
+    </div>
+
+    <div id="statute-section" style="margin-top:1.25rem;display:none;">
+      <h3 style="font-family:'Source Serif 4',Georgia,serif;margin:0 0 0.4rem;font-size:1rem;color:var(--navy);">Statute &amp; Constitutional Citation Check</h3>
+      <p class="hint">Compares canonical statute mentions in the summary against those in the reference. Paraphrased or uncommon statutes may be missed.</p>
+      <table class="statute-table" id="statute-table"></table>
+    </div>
+
+    <div style="margin-top:1.25rem;">
+      <h3 style="font-family:'Source Serif 4',Georgia,serif;margin:0 0 0.4rem;font-size:1rem;color:var(--navy);">Summary with Highlights</h3>
+      <div class="rendered-summary" id="rendered-summary"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>About the Flags</h2>
+    <p>This tool ports the structural checks from <code>scripts/summary_qa.py</code> so you can triage one summary at a time without installing Python. It catches the same failure modes we saw in the Qwen-7B fine-tuning: garbled years (<code>21020</code>, <code>2k00</code>), raw court-filing artifacts, repetition loops, meta-prompt leakage, and the Clearinghouse required-element checklist.</p>
+    <details class="legend">
+      <summary>Flag code legend (click to expand)</summary>
+      <table>
+        <tr><td>EXTREMELY_SHORT · TOO_SHORT · TOO_LONG</td><td>Word count is outside the 80–2000 word window.</td></tr>
+        <tr><td>UNTERMINATED · ELLIPSIS_END</td><td>Summary does not end with terminal punctuation — likely hit a token limit mid-sentence.</td></tr>
+        <tr><td>GARBLED_DATE</td><td>Alphanumeric token in a date context that looks like a botched year (<code>2k00</code>, <code>2oo4</code>, <code>21020</code>). This was the ckpt-3690 overfitting fingerprint.</td></tr>
+        <tr><td>IMPLAUSIBLE_YEAR</td><td>4-digit year outside the 1700 – next year range in a date context.</td></tr>
+        <tr><td>RAW_DOCUMENT_ARTIFACT</td><td>Pleading caption, signature block, line-numbered transcript text — the model regurgitated source instead of summarizing.</td></tr>
+        <tr><td>EXCESSIVE_CAPS</td><td>Long run of ALL-CAPS words — usually a court header bled through.</td></tr>
+        <tr><td>DUPLICATE_SENTENCE · REPETITION_LOOP</td><td>The same long sentence or 8-word phrase appears multiple times — model is stuck.</td></tr>
+        <tr><td>META_PROMPT_LEAK</td><td>"As an AI language model…", "Here is the summary…", "Based on the provided documents…" — meta-talk that shouldn't appear in a Clearinghouse summary.</td></tr>
+        <tr><td>WRONG_JUDGMENT_SPELLING</td><td><code>judgement</code> → <code>judgment</code> in U.S. legal usage.</td></tr>
+        <tr><td>WRONG_TENSE</td><td>Present-tense narrative verbs dominate — Clearinghouse style is past tense for procedural history.</td></tr>
+        <tr><td>SUSPICIOUS_SPELLING</td><td>Tokens with triple-repeated letters or unusual clusters — often overfitting typos.</td></tr>
+        <tr><td>MISSING_FILING_DATE</td><td>No filing-date cue found (required element).</td></tr>
+        <tr><td>MISSING_COURT</td><td>No court name detected (required element).</td></tr>
+        <tr><td>MISSING_STATUTE</td><td>No statutory or constitutional basis detected (required element).</td></tr>
+        <tr><td>MISSING_REMEDY</td><td>No remedy or relief language detected (recommended).</td></tr>
+        <tr><td>MISSING_OUTCOME</td><td>No disposition or outcome language detected (recommended).</td></tr>
+        <tr><td>MISSING_ACTION_TYPE</td><td>Did not specify class vs. individual action (recommended).</td></tr>
+        <tr><td>LENGTH_TOO_SHORT_VS_REF · LENGTH_TOO_LONG_VS_REF</td><td>Generated length is &lt;40% or &gt;250% of reference — only fires when a reference is provided.</td></tr>
+        <tr><td>UNCITED_STATUTE</td><td>Reference cites a statute the summary doesn't mention. Only fires with a reference.</td></tr>
+        <tr><td>UNSUPPORTED_STATUTE</td><td>Summary cites a statute the reference doesn't mention — possible hallucination. Only fires with a reference.</td></tr>
+      </table>
+    </details>
+  </section>
+
+</main>
+
+<footer>
+  Built for the <a href="https://clearinghouse.net" target="_blank" rel="noopener">Civil Rights Litigation Clearinghouse</a> ·
+  CivilRightsSummarizedAI · University of Michigan Law School &amp; MSU CMSE 495
+</footer>
+
+<script>
+/* ============================================================================
+ * QA logic — ported from scripts/summary_qa.py (SummaryQAChecker)
+ * ==========================================================================*/
+
+const MONTHS =
+  "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|" +
+  "July?|Aug(?:ust)?|Sept?(?:ember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
+
+const RE = {
+  PLEADING: new RegExp(
+    "(?:^|\\n)\\s*(?:Plaintiffs?,?|Defendants?,?)\\s*[\\)\\]].*|" +
+    "(?:^|\\n)\\s*v\\.\\s*[\\)\\]]|" +
+    "(?:^|\\n)\\s*(?:UNITED STATES )?DISTRICT COURT\\b|" +
+    "(?:^|\\n)\\s*Case No\\.?\\s*[:#]|" +
+    "(?:^|\\n)\\s*Civil Action No\\.?|" +
+    "(?:^|\\n)\\s*/s/|" +
+    "(?:^|\\n)\\s*(?:SO ORDERED|IT IS SO ORDERED)\\.?\\s*$",
+    "gmi"
+  ),
+  LINE_NUMS: /(?:^\s*\d{1,2}\s+\S.*(?:\n|$)){3,}/m,
+  META: /(?:\bas an ai\b|i (?:will|am|can|'ll|'m) (?:now |provide|be )?(?:summariz|creat|generat|writ|provid)|here(?:'s| is) (?:a |the |your )?(?:summary|case summary)|based on the (?:provided|given|above) (?:documents?|text|case|information)|the following is a summary|summary:\s*\n)/i,
+  BRITISH: /\bjudgement\b/i,
+  PRESENT: /\b(?:files|sues|alleges|argues|claims|seeks|brings|moves|asks|demands|challenges)\b/gi,
+  PAST: /\b(?:filed|sued|alleged|argued|claimed|sought|brought|moved|asked|demanded|challenged|held|ruled|found)\b/gi,
+
+  FILING_DATE: new RegExp(
+    "\\b(?:filed|commenced|brought|initiated)\\b[\\s\\S]{0,60}?(?:" + MONTHS + "|\\d{4})|" +
+    "(?:on|in)\\s+" + MONTHS + "\\s+\\d{1,2},?\\s*\\d{4}|" +
+    MONTHS + "\\s+\\d{1,2},?\\s*\\d{4}",
+    "i"
+  ),
+  COURT: /\b(?:U\.S\. District Court|United States District Court|Circuit Court|Court of Appeals|Supreme Court|District of [A-Z][a-z]+|Eastern District|Western District|Northern District|Southern District|Middle District|[A-Z][a-zA-Z]+ County Court|Court of Common Pleas|Chancery Court|Superior Court)\b/,
+  STATUTE: /\b(?:42 U\.?S\.?C\.?|28 U\.?S\.?C\.?|Title [IVX]+|Title VII|Americans with Disabilities Act|ADA\b|Section 1983|§\s*1983|First Amendment|Fourth Amendment|Fifth Amendment|Eighth Amendment|Fourteenth Amendment|Equal Protection|Due Process|Voting Rights Act|Civil Rights Act|Rehabilitation Act|Fair Housing Act|FHA\b|IDEA\b|FMLA\b|RFRA\b|FLSA\b)\b/,
+  REMEDY: /\b(?:damages|injunctive relief|declaratory (?:judgment|relief)|compensatory|punitive|attorneys?'?\s*fees|restitution|preliminary injunction|permanent injunction|(?:sought|seeking|requested|requesting)\s+(?:relief|damages|an? (?:order|injunction)))\b/i,
+  OUTCOME: /\b(?:dismissed|granted|denied|settled|affirmed|reversed|remanded|entered|approved|certified|judgment (?:for|against)|court (?:held|ruled|found|ordered|entered)|class certification)\b/i,
+  ACTION_TYPE: /\b(?:class action|class of|putative class|individual capacity|pro se)\b/i,
+};
+
+const CURRENT_YEAR = new Date().getFullYear();
+
+/* ---------------------------- Statute lexicon ----------------------------- *
+ * Each entry maps a canonical short name → array of regex aliases.
+ * Keep the patterns case-insensitive (\b word-boundaries) and conservative
+ * enough to avoid false positives on ordinary prose.
+ * ------------------------------------------------------------------------ */
+const STATUTE_LEXICON = [
+  { name: "42 U.S.C. § 1983", aliases: [
+      /\b42\s*U\.?S\.?C\.?\s*§?\s*1983\b/i,
+      /\bsection\s*1983\b/i,
+      /§\s*1983\b/,
+  ]},
+  { name: "42 U.S.C. § 1985", aliases: [/\b42\s*U\.?S\.?C\.?\s*§?\s*1985\b/i, /\bsection\s*1985\b/i] },
+  { name: "42 U.S.C. § 1981", aliases: [/\b42\s*U\.?S\.?C\.?\s*§?\s*1981\b/i, /\bsection\s*1981\b/i] },
+  { name: "Bivens", aliases: [/\bBivens\b/] },
+  { name: "Title VI",  aliases: [/\bTitle\s+VI\b(?!I)/] },
+  { name: "Title VII", aliases: [/\bTitle\s+VII\b/] },
+  { name: "Title IX",  aliases: [/\bTitle\s+IX\b/] },
+  { name: "Title II (ADA)",  aliases: [/\bTitle\s+II\b(?=[\s\S]{0,80}(?:ADA|Americans with Disabilities))/i] },
+  { name: "ADA", aliases: [/\bAmericans with Disabilities Act\b/i, /\bADA\b/] },
+  { name: "Rehabilitation Act / § 504", aliases: [
+      /\bRehabilitation Act\b/i,
+      /\bSection\s*504\b/i,
+      /§\s*504\b/,
+  ]},
+  { name: "IDEA", aliases: [/\bIndividuals with Disabilities Education Act\b/i, /\bIDEA\b/] },
+  { name: "Fair Housing Act", aliases: [/\bFair Housing Act\b/i, /\bFHA\b/] },
+  { name: "Voting Rights Act", aliases: [/\bVoting Rights Act\b/i, /\bVRA\b/] },
+  { name: "Civil Rights Act of 1964", aliases: [/\bCivil Rights Act of 1964\b/i, /\b1964 Civil Rights Act\b/i] },
+  { name: "Civil Rights Act of 1871", aliases: [/\bCivil Rights Act of 1871\b/i] },
+  { name: "Civil Rights Act of 1991", aliases: [/\bCivil Rights Act of 1991\b/i] },
+  { name: "PLRA", aliases: [/\bPrison Litigation Reform Act\b/i, /\bPLRA\b/] },
+  { name: "RLUIPA", aliases: [/\bReligious Land Use and Institutionalized Persons Act\b/i, /\bRLUIPA\b/] },
+  { name: "RFRA", aliases: [/\bReligious Freedom Restoration Act\b/i, /\bRFRA\b/] },
+  { name: "FMLA", aliases: [/\bFamily and Medical Leave Act\b/i, /\bFMLA\b/] },
+  { name: "FLSA", aliases: [/\bFair Labor Standards Act\b/i, /\bFLSA\b/] },
+  { name: "ADEA", aliases: [/\bAge Discrimination in Employment Act\b/i, /\bADEA\b/] },
+  { name: "Title 28 (federal jurisdiction)", aliases: [/\b28\s*U\.?S\.?C\.?\s*§?\s*\d+/i] },
+  { name: "Equal Protection Clause", aliases: [/\bEqual Protection(?:\s+Clause)?\b/i] },
+  { name: "Due Process Clause", aliases: [/\bDue Process(?:\s+Clause)?\b/i] },
+  { name: "First Amendment", aliases: [/\bFirst Amendment\b/i, /\b1st Amendment\b/i] },
+  { name: "Second Amendment", aliases: [/\bSecond Amendment\b/i, /\b2nd Amendment\b/i] },
+  { name: "Fourth Amendment", aliases: [/\bFourth Amendment\b/i, /\b4th Amendment\b/i] },
+  { name: "Fifth Amendment", aliases: [/\bFifth Amendment\b/i, /\b5th Amendment\b/i] },
+  { name: "Sixth Amendment", aliases: [/\bSixth Amendment\b/i, /\b6th Amendment\b/i] },
+  { name: "Eighth Amendment", aliases: [/\bEighth Amendment\b/i, /\b8th Amendment\b/i] },
+  { name: "Ninth Amendment", aliases: [/\bNinth Amendment\b/i, /\b9th Amendment\b/i] },
+  { name: "Fourteenth Amendment", aliases: [/\bFourteenth Amendment\b/i, /\b14th Amendment\b/i] },
+  { name: "Fifteenth Amendment", aliases: [/\bFifteenth Amendment\b/i, /\b15th Amendment\b/i] },
+  { name: "Habeas Corpus (28 U.S.C. § 2254/2255)", aliases: [/\bhabeas corpus\b/i, /\b2254\b/, /\b2255\b/] },
+  { name: "IIRIRA / INA", aliases: [/\bImmigration and Nationality Act\b/i, /\bINA\b/, /\bIIRIRA\b/] },
+  { name: "APA (Administrative Procedure Act)", aliases: [/\bAdministrative Procedure Act\b/i, /\bAPA\b/] },
+  { name: "EAJA", aliases: [/\bEqual Access to Justice Act\b/i, /\bEAJA\b/] },
+];
+
+function extractStatutes(text) {
+  const found = new Set();
+  if (!text) return found;
+  for (const entry of STATUTE_LEXICON) {
+    for (const re of entry.aliases) {
+      if (re.test(text)) { found.add(entry.name); break; }
+    }
+  }
+  return found;
+}
+
+/* ------------------------------ Core checker ------------------------------ */
+
+function checkSummary(prediction, reference) {
+  prediction = (prediction || "").trim();
+  const words = prediction ? prediction.split(/\s+/) : [];
+  const flags = [];
+  const metrics = {};
+
+  const add = (severity, code, message, evidence = "") =>
+    flags.push({ severity, code, message, evidence });
+
+  // 1. Length
+  const wc = words.length;
+  metrics.word_count = wc;
+  if (wc === 0) {
+    add("critical", "EMPTY", "No summary text provided.");
+    return { flags, metrics, status: "REJECT" };
+  }
+  if (wc < 30) add("critical", "EXTREMELY_SHORT",
+      `Summary is only ${wc} words — far too short to cover required elements.`, `${wc} words`);
+  else if (wc < 80) add("warning", "TOO_SHORT",
+      `Summary (${wc} words) is below the 80-word minimum.`, `${wc} words`);
+  else if (wc > 2000) add("warning", "TOO_LONG",
+      `Summary (${wc} words) exceeds the 2000-word budget.`, `${wc} words`);
+
+  // 2. Truncation
+  const lastChar = prediction.slice(-1);
+  if (!'.!?"\')]'.includes(lastChar)) {
+    const lastLine = prediction.split("\n").pop() || prediction;
+    add("critical", "UNTERMINATED",
+      "Summary does not end with terminal punctuation — likely truncated mid-sentence or hit the max-token budget.",
+      "…" + lastLine.slice(-60));
+  } else if (prediction.endsWith("...") || prediction.endsWith("..")) {
+    add("warning", "ELLIPSIS_END",
+      "Summary ends in an ellipsis — may indicate content was dropped.",
+      prediction.slice(-20));
+  }
+
+  // 3. Garbled years — four patterns
+  checkGarbledYears(prediction, add);
+
+  // 4. Raw document artifacts
+  const pleading = prediction.match(RE.PLEADING);
+  if (pleading) {
+    add("critical", "RAW_DOCUMENT_ARTIFACT",
+      "Summary contains raw pleading or order text (caption, signature block, court header) — model is regurgitating source documents.",
+      String(pleading[0]).slice(0, 80).trim());
+  }
+  if (RE.LINE_NUMS.test(prediction)) {
+    add("critical", "RAW_DOCUMENT_ARTIFACT",
+      "Summary contains consecutive line-numbered lines — likely a raw transcript or brief block.",
+      "line-numbered block detected");
+  }
+  const capsRun = prediction.match(/(?:\b[A-Z]{2,}\b\s+){4,}/);
+  if (capsRun) add("warning", "EXCESSIVE_CAPS",
+      "Extended run of ALL-CAPS words — may indicate a court header or shout block.",
+      capsRun[0].slice(0, 80));
+
+  // 5. Repetition
+  const sentences = prediction.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+  const sentCounts = {};
+  for (const s of sentences) sentCounts[s] = (sentCounts[s] || 0) + 1;
+  for (const [sent, count] of Object.entries(sentCounts)) {
+    if (count >= 2 && sent.length > 40) {
+      add("warning", "DUPLICATE_SENTENCE", `Sentence appears ${count} times.`, sent.slice(0, 100));
+      break;
+    }
+  }
+  const toks = prediction.split(/\s+/);
+  if (toks.length >= 24) {
+    const gramCounts = {};
+    for (let i = 0; i <= toks.length - 8; i++) {
+      const g = toks.slice(i, i + 8).join(" ");
+      gramCounts[g] = (gramCounts[g] || 0) + 1;
+    }
+    let topGram = null, topN = 0;
+    for (const [g, c] of Object.entries(gramCounts)) {
+      if (c > topN) { topGram = g; topN = c; }
+    }
+    if (topN >= 3) add("critical", "REPETITION_LOOP",
+      `8-word phrase repeats ${topN} times — model is stuck in a loop.`,
+      topGram.slice(0, 80));
+  }
+
+  // 6. Meta prompt leakage
+  const meta = prediction.match(RE.META);
+  if (meta) add("critical", "META_PROMPT_LEAK",
+      "Summary contains meta-prompt or self-referential AI language.",
+      meta[0].slice(0, 80));
+
+  // 7. Legal style
+  if (RE.BRITISH.test(prediction)) add("info", "WRONG_JUDGMENT_SPELLING",
+      "'Judgement' should be 'judgment' in U.S. legal usage.", "judgement");
+  const pt = (prediction.match(RE.PRESENT) || []).length;
+  const past = (prediction.match(RE.PAST) || []).length;
+  if (pt >= 3 && pt > past) add("warning", "WRONG_TENSE",
+      `Summary appears to use present tense (${pt} present-tense verbs vs ${past} past-tense) — Clearinghouse style is past tense.`,
+      `${pt} present / ${past} past`);
+
+  // 8. Suspicious spelling
+  const suspicious = new Set();
+  const tripletRe = /\b\w*([a-zA-Z])\1{2,}\w*\b/g;
+  for (const m of prediction.matchAll(tripletRe)) suspicious.add(m[0]);
+  const patterns = [/\b\w*iiv\w*\b/gi, /\b\w*iin\w*\b/gi, /\b\w*(?:jn|hn|kz|wv)\w*\b/gi];
+  for (const p of patterns) for (const m of prediction.matchAll(p)) {
+    if (!["you", "your"].includes(m[0].toLowerCase())) suspicious.add(m[0]);
+  }
+  if (suspicious.size) {
+    const list = [...suspicious].slice(0, 5);
+    add("warning", "SUSPICIOUS_SPELLING",
+      `Found ${list.length} possibly misspelled token(s).`, list.join(", "));
+  }
+
+  // 9. Required elements
+  if (!RE.FILING_DATE.test(prediction)) add("warning", "MISSING_FILING_DATE",
+      "No filing date detected — required Clearinghouse element.");
+  if (!RE.COURT.test(prediction)) add("warning", "MISSING_COURT",
+      "No court name detected — required Clearinghouse element.");
+  if (!RE.STATUTE.test(prediction)) add("warning", "MISSING_STATUTE",
+      "No statutory or constitutional basis detected — required Clearinghouse element.");
+  if (!RE.REMEDY.test(prediction)) add("info", "MISSING_REMEDY",
+      "No remedy or relief language detected — may need one.");
+  if (!RE.OUTCOME.test(prediction)) add("info", "MISSING_OUTCOME",
+      "No disposition or outcome language detected — may need one.");
+  if (!RE.ACTION_TYPE.test(prediction)) add("info", "MISSING_ACTION_TYPE",
+      "Did not specify class vs. individual action — recommended.");
+
+  // 10. Reference-dependent checks
+  let statuteDiff = null;
+  if (reference && reference.trim()) {
+    const refWords = reference.trim().split(/\s+/).length;
+    const ratio = refWords > 0 ? wc / refWords : 0;
+    metrics.ref_word_count = refWords;
+    metrics.length_ratio = Math.round(ratio * 100) / 100;
+    if (ratio < 0.4) add("warning", "LENGTH_TOO_SHORT_VS_REF",
+        `Summary is ${Math.round(ratio * 100)}% of reference length — likely missing required content.`,
+        `ratio=${ratio.toFixed(2)}`);
+    else if (ratio > 2.5) add("warning", "LENGTH_TOO_LONG_VS_REF",
+        `Summary is ${ratio.toFixed(1)}× reference length — likely padded.`,
+        `ratio=${ratio.toFixed(2)}`);
+
+    // Word-overlap (rough ROUGE-1-like F1 on lowercased content words)
+    metrics.word_overlap_f1 = roughOverlapF1(prediction, reference);
+
+    // Statute diff
+    const predSt = extractStatutes(prediction);
+    const refSt  = extractStatutes(reference);
+    const uncited = [...refSt].filter(s => !predSt.has(s));
+    const unsupported = [...predSt].filter(s => !refSt.has(s));
+    const matched = [...refSt].filter(s => predSt.has(s));
+    statuteDiff = { matched, uncited, unsupported, predSt: [...predSt], refSt: [...refSt] };
+    for (const s of uncited) add("warning", "UNCITED_STATUTE",
+      `Reference cites ${s} but the summary does not.`, s);
+    for (const s of unsupported) add("warning", "UNSUPPORTED_STATUTE",
+      `Summary cites ${s} but the reference does not — possible hallucination or citation drift.`, s);
+  }
+
+  // Status
+  const sev = sevCount(flags);
+  const status = sev.critical > 0 ? "REJECT" : sev.warning > 0 ? "REVIEW" : "PASS";
+  return { flags, metrics, status, statuteDiff };
+}
+
+function checkGarbledYears(text, add) {
+  const seen = new Set();        // dedupe: don't double-flag the same token
+  const flag = (sev, code, msg, ev) => {
+    const k = code + "|" + ev;
+    if (seen.has(k)) return;
+    seen.add(k);
+    add(sev, code, msg, ev);
+  };
+
+  // A "year context" is text immediately preceding a number that looks like
+  // a date — either a year-context word ("in", "on", "filed", "dated", a
+  // month name…) OR the tail of a "Month Day," construction.
+  const YEAR_CTX = new RegExp(
+    "(?:" +
+      "\\b(?:in|on|since|until|filed|year|dated|of)\\s*,?\\s*" + "|" +
+      MONTHS.toLowerCase() + "\\s+\\d{1,2},?\\s*" + "|" +
+      MONTHS.toLowerCase() + "\\s*,?\\s*" +
+    ")$"
+  );
+  const inYearCtx = (idx) => {
+    const before = text.slice(Math.max(0, idx - 40), idx).toLowerCase();
+    return YEAR_CTX.test(before);
+  };
+
+  // Pattern 1: mixed alphanumeric tokens that look like botched years
+  // (e.g. 2oo4, 20o3 — letters and digits interleaved)
+  const mixed = text.matchAll(/\b(?=\S*\d)(?=\S*[A-Za-z])[A-Za-z0-9]{3,6}\b/g);
+  for (const m of mixed) {
+    const token = m[0];
+    if (/^\d{1,2}(?:st|nd|rd|th)$/i.test(token)) continue;
+    if (/^(?:Nos?|Count|Doc|ECF|ID|PL|DEF|No\d+|Fed|Cir|Cal|Ill|Mich|Tex|Va|Wis|Pa|Ga|Md|Mo|Or|NC|NY|NJ|CA|DC|SD|ED|WD|MD|ND)\d+$/i.test(token)) continue;
+    if (/^\d+[xkKm]\d*$|^v\d+$|^p\d+$|^§\d+$/.test(token)) continue;
+    if (/\d[A-Za-z]|[A-Za-z]\d/.test(token)) {
+      flag("critical", "GARBLED_DATE",
+        `Alphanumeric token '${token}' looks like a garbled year (common overfitting artifact).`,
+        token);
+    }
+  }
+
+  // Pattern 2a: 5+ digit number whose first 2 digits are 19/20/21 is
+  // almost certainly a botched year — flag UNLESS it looks like a ZIP code
+  // (preceded by a 2-letter US state abbreviation + space).
+  const STATE_ZIP = /\b(?:AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\s+$/;
+  for (const m of text.matchAll(/\b\d{5,}\b/g)) {
+    const tok = m[0];
+    if (!/^(19|20|21)/.test(tok)) continue;
+    // ZIP code skip: "Philadelphia, PA 19103"
+    const before = text.slice(Math.max(0, m.index - 8), m.index);
+    if (STATE_ZIP.test(before) && tok.length === 5) continue;
+    flag("critical", "GARBLED_DATE",
+      `${tok.length}-digit number '${tok}' starts like a year prefix — likely a botched year.`,
+      tok);
+  }
+
+  // Pattern 2b: any 5+ digit number in an explicit year context (catches
+  // cases like "in 99999" or "filed in 12345" that 2a wouldn't).
+  for (const m of text.matchAll(/\b\d{5,}\b/g)) {
+    if (/^(19|20|21)/.test(m[0])) continue; // already handled above
+    if (inYearCtx(m.index)) {
+      flag("critical", "GARBLED_DATE",
+        `${m[0].length}-digit number '${m[0]}' in year context — likely garbled year.`, m[0]);
+    }
+  }
+
+  // Pattern 3: 3-digit year-like (e.g. "filed in 210" — truncated 2010)
+  const rx3 = new RegExp(
+    "(?:" + MONTHS + "\\s+\\d{1,2},?\\s*|" +
+    "\\b(?:in|on|since|until|filed|year|dated)\\s+)(\\d{3})\\b",
+    "gi"
+  );
+  for (const m of text.matchAll(rx3)) {
+    const tok = m[1];
+    if (tok.startsWith("19") || tok.startsWith("20") || tok.startsWith("21")) {
+      flag("critical", "GARBLED_DATE",
+        `3-digit 'year' '${tok}' in date context — truncated year digit.`,
+        m[0]);
+    }
+  }
+
+  // Pattern 4: implausible 4-digit years (e.g. "in 2099", "in 1066")
+  for (const m of text.matchAll(/\b(\d{4})\b/g)) {
+    const year = parseInt(m[1], 10);
+    if (year < 1700 || year > CURRENT_YEAR + 1) {
+      if (inYearCtx(m.index)) {
+        flag("warning", "IMPLAUSIBLE_YEAR",
+          `Year ${year} is outside plausible range (1700-${CURRENT_YEAR + 1}).`, m[0]);
+      }
+    }
+  }
+}
+
+function sevCount(flags) {
+  const c = { critical: 0, warning: 0, info: 0 };
+  for (const f of flags) c[f.severity]++;
+  return c;
+}
+
+/* Lightweight word-overlap F1: lowercased alphanumeric tokens minus stopwords,
+   unigram F1. Not identical to ROUGE-1 (no stemming) but correlates strongly
+   and needs no Python. */
+const STOP = new Set(("the a an and or but of in on at to for from by with as is was were are be been being this that these those it its their his her he she they we i you my your our which who whom what whose if then than so not no nor".split(/\s+/)));
+function tokenize(s) {
+  return (s || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+}
+function roughOverlapF1(a, b) {
+  const A = tokenize(a).filter(t => !STOP.has(t));
+  const B = tokenize(b).filter(t => !STOP.has(t));
+  if (!A.length || !B.length) return 0;
+  const countsA = {}, countsB = {};
+  for (const t of A) countsA[t] = (countsA[t] || 0) + 1;
+  for (const t of B) countsB[t] = (countsB[t] || 0) + 1;
+  let overlap = 0;
+  for (const t in countsA) overlap += Math.min(countsA[t], countsB[t] || 0);
+  const p = overlap / A.length;
+  const r = overlap / B.length;
+  const f1 = p + r === 0 ? 0 : (2 * p * r) / (p + r);
+  return Math.round(f1 * 1000) / 1000;
+}
+
+/* ============================================================================
+ * UI
+ * ==========================================================================*/
+
+function runChecks() {
+  const pred = document.getElementById("prediction").value;
+  const ref  = document.getElementById("reference").value;
+  if (!pred.trim()) {
+    alert("Please paste a summary to check.");
+    return;
+  }
+  const report = checkSummary(pred, ref);
+  renderResults(pred, ref, report);
+}
+
+function renderResults(pred, ref, report) {
+  const panel = document.getElementById("results");
+  panel.classList.add("visible");
+
+  // Summary line
+  const sev = sevCount(report.flags);
+  const summary = document.getElementById("summary-line");
+  const caseName = document.getElementById("case-name").value.trim();
+  const caseId = document.getElementById("case-id").value.trim();
+  const title =
+    (caseName ? `<strong>${esc(caseName)}</strong>` : "") +
+    (caseId ? ` <span class="chip">#${esc(caseId)}</span>` : "");
+  summary.innerHTML =
+    `<span class="status-badge ${report.status}">${report.status}</span>` +
+    (title ? ` &nbsp; ${title}` : "") +
+    ` &nbsp; <span class="chip">${report.metrics.word_count} words</span>` +
+    ` <span class="chip critical">${sev.critical} critical</span>` +
+    ` <span class="chip warning">${sev.warning} warning</span>` +
+    ` <span class="chip info">${sev.info} info</span>`;
+
+  // Metrics
+  const metricsKeys = [
+    ["word_count", "Words"],
+    ["ref_word_count", "Ref. Words"],
+    ["length_ratio", "Length Ratio"],
+    ["word_overlap_f1", "Word-Overlap F1"],
+  ];
+  const mGrid = document.getElementById("metrics-grid");
+  mGrid.innerHTML = "";
+  let anyMetric = false;
+  for (const [k, lbl] of metricsKeys) {
+    if (report.metrics[k] !== undefined) {
+      anyMetric = true;
+      mGrid.innerHTML +=
+        `<div class="metric"><p class="label">${lbl}</p>` +
+        `<div class="value">${report.metrics[k]}</div></div>`;
+    }
+  }
+  document.getElementById("metrics-wrap").style.display = anyMetric ? "block" : "none";
+
+  // Flags
+  const flagList = document.getElementById("flag-list");
+  if (!report.flags.length) {
+    flagList.innerHTML = '<li class="no-flags">✓ No flags raised — summary passes all structural checks.</li>';
+  } else {
+    const order = { critical: 0, warning: 1, info: 2 };
+    const sorted = [...report.flags].sort((a, b) => order[a.severity] - order[b.severity]);
+    flagList.innerHTML = sorted.map(f =>
+      `<li class="${f.severity}">` +
+      `<span class="code-label">${esc(f.code)}</span>` +
+      `<span class="msg">${esc(f.message)}</span>` +
+      (f.evidence ? `<span class="evidence">${esc(f.evidence)}</span>` : "") +
+      `</li>`
+    ).join("");
+  }
+
+  // Statute section
+  const stSec = document.getElementById("statute-section");
+  if (report.statuteDiff) {
+    stSec.style.display = "block";
+    const { matched, uncited, unsupported, predSt, refSt } = report.statuteDiff;
+    if (!matched.length && !uncited.length && !unsupported.length) {
+      document.getElementById("statute-table").innerHTML =
+        "<tr><td colspan='2' style='color:var(--text-muted);font-style:italic;'>" +
+        "No canonical statutes detected in either the summary or the reference." +
+        "</td></tr>";
+    } else {
+      const rows = [];
+      rows.push("<tr><th>Statute / Constitutional Provision</th><th>Status</th></tr>");
+      for (const s of matched)     rows.push(`<tr><td>${esc(s)}</td><td><span class="tag match">✓ in both</span></td></tr>`);
+      for (const s of uncited)     rows.push(`<tr><td>${esc(s)}</td><td><span class="tag uncited">⚠ reference only (uncited)</span></td></tr>`);
+      for (const s of unsupported) rows.push(`<tr><td>${esc(s)}</td><td><span class="tag unsupported">✗ summary only (unsupported)</span></td></tr>`);
+      document.getElementById("statute-table").innerHTML = rows.join("");
+    }
+  } else {
+    stSec.style.display = "none";
+  }
+
+  // Rendered summary with highlights
+  document.getElementById("rendered-summary").innerHTML = highlightSummary(pred, report.flags);
+
+  // Scroll to results
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function highlightSummary(text, flags) {
+  // Collect unique evidence strings to highlight.
+  const ranges = [];
+  const seen = new Set();
+  for (const f of flags) {
+    const ev = (f.evidence || "").trim();
+    if (!ev || ev.length < 3 || ev.length > 200) continue;
+    if (seen.has(ev)) continue;
+    seen.add(ev);
+    const idx = text.indexOf(ev.replace(/^…/, ""));
+    if (idx >= 0) {
+      ranges.push({
+        start: idx,
+        end: idx + ev.replace(/^…/, "").length,
+        sev: f.severity === "critical" ? "hl-crit" : "hl-flag",
+      });
+    }
+  }
+  ranges.sort((a, b) => a.start - b.start);
+  // Merge overlaps
+  const merged = [];
+  for (const r of ranges) {
+    if (merged.length && r.start < merged[merged.length - 1].end) {
+      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, r.end);
+      if (r.sev === "hl-crit") merged[merged.length - 1].sev = "hl-crit";
+    } else merged.push({ ...r });
+  }
+  let out = "", pos = 0;
+  for (const r of merged) {
+    out += esc(text.slice(pos, r.start));
+    out += `<span class="${r.sev}">${esc(text.slice(r.start, r.end))}</span>`;
+    pos = r.end;
+  }
+  out += esc(text.slice(pos));
+  return out;
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function toggleReference() {
+  const wrap = document.getElementById("reference-wrap");
+  const btn = document.getElementById("toggle-ref-btn");
+  wrap.classList.toggle("visible");
+  btn.textContent = wrap.classList.contains("visible")
+    ? "− Hide reference summary"
+    : "+ Add reference summary (optional)";
+}
+
+function clearAll() {
+  document.getElementById("prediction").value = "";
+  document.getElementById("reference").value = "";
+  document.getElementById("case-name").value = "";
+  document.getElementById("case-id").value = "";
+  document.getElementById("results").classList.remove("visible");
+}
+
+function loadDemo() {
+  // Toy example that trips several flags on purpose: garbled year,
+  // missing outcome, missing action type, plus an UNCITED_STATUTE vs reference.
+  document.getElementById("case-name").value = "Doe v. State Department of Corrections";
+  document.getElementById("case-id").value = "DEMO-001";
+  document.getElementById("prediction").value =
+    "This class action lawsuit was filed on April 12, 21020 in the U.S. District Court " +
+    "for the Eastern District of Michigan. The plaintiff, an incarcerated individual, " +
+    "alleged violations of the Eighth Amendment based on inadequate medical care. " +
+    "The plaintiff sought damages and injunctive relief from the Michigan Department " +
+    "of Corrections and its Director. The court appointed counsel and certified a " +
+    "putative class of similarly-situated prisoners.";
+  document.getElementById("reference").value =
+    "Filed in April 2023 in the U.S. District Court for the Eastern District of " +
+    "Michigan, this class action challenged inadequate medical care at Michigan " +
+    "Department of Corrections facilities. Plaintiffs brought claims under 42 U.S.C. " +
+    "§ 1983 alleging Eighth Amendment violations and the Americans with Disabilities " +
+    "Act. The court certified the class in 2024 and the parties settled in March 2025 " +
+    "with a consent decree requiring systemic reforms.";
+  if (!document.getElementById("reference-wrap").classList.contains("visible")) {
+    toggleReference();
+  }
+}
+</script>
+</body>
+</html>

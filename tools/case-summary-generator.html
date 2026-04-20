@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Summary Generator · Civil Rights Clearinghouse</title>
+<style>
+:root {
+  --navy: #00274C;
+  --navy-light: #0d3a5c;
+  --gold: #FFCB05;
+  --gold-soft: #fff1ae;
+  --cream: #faf8f5;
+  --cream-dark: #f0ede8;
+  --text: #1f2937;
+  --muted: #5f6b7a;
+  --border: #d9d4cc;
+  --card: #ffffff;
+  --green: #166534;
+  --green-bg: #dcfce7;
+  --amber: #92400e;
+  --amber-bg: #fef3c7;
+  --red: #991b1b;
+  --red-bg: #fee2e2;
+  --blue: #1d4ed8;
+  --blue-bg: #dbeafe;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.55;
+}
+header {
+  background: var(--navy);
+  color: white;
+  border-bottom: 4px solid var(--gold);
+  padding: 1.2rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+header h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+header .sub { color: var(--gold); font-size: .86rem; margin-top: .15rem; }
+header .right { font-size: .75rem; color: rgba(255,255,255,.8); text-align: right; }
+main {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.15rem;
+}
+.card-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+  border-bottom: 2px solid var(--gold);
+  padding-bottom: .45rem;
+  margin-bottom: 1rem;
+}
+.card-title h2 {
+  margin: 0;
+  color: var(--navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.12rem;
+}
+.step {
+  display: inline-block;
+  min-width: 1.7rem;
+  text-align: center;
+  margin-right: .35rem;
+  padding: .08rem .45rem;
+  border-radius: 999px;
+  background: var(--navy);
+  color: white;
+  font-family: var(--mono);
+  font-size: .75rem;
+}
+.note { color: var(--muted); font-size: .83rem; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+@media(max-width: 780px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  header .right { text-align: left; }
+}
+.field { margin-bottom: .95rem; }
+label {
+  display: block;
+  margin-bottom: .35rem;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+input[type="text"], input[type="password"], textarea, select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+  color: var(--text);
+  font: inherit;
+  padding: .65rem .75rem;
+}
+textarea {
+  min-height: 138px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: .85rem;
+  line-height: 1.55;
+}
+textarea.summary { min-height: 260px; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; }
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(0,39,76,.1);
+}
+.btn-row { display: flex; gap: .65rem; align-items: center; flex-wrap: wrap; margin-top: .75rem; }
+button {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: .65rem 1.05rem;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: .88rem;
+  cursor: pointer;
+}
+button:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: var(--navy); color: white; }
+.btn-primary:hover { background: var(--navy-light); }
+.btn-secondary { background: white; color: var(--navy); border-color: var(--border); }
+.btn-secondary:hover { border-color: var(--navy); background: var(--cream-dark); }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px dashed var(--border); }
+.btn-ghost:hover { color: var(--navy); border-color: var(--navy); }
+.status {
+  display: none;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  padding: .85rem 1rem;
+  border: 1px solid;
+  font-size: .88rem;
+}
+.status.visible { display: block; }
+.status.info { background: var(--blue-bg); border-color: #93c5fd; color: #1e3a8a; }
+.status.ok { background: var(--green-bg); border-color: #86efac; color: var(--green); }
+.status.warn { background: var(--amber-bg); border-color: #fcd34d; color: var(--amber); }
+.status.err { background: var(--red-bg); border-color: #fca5a5; color: var(--red); }
+.progress {
+  display: none;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  padding: .85rem 1rem;
+  color: var(--text);
+  font-size: .88rem;
+}
+.progress.visible { display: flex; align-items: center; gap: .75rem; }
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--border);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.case-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+@media(max-width: 860px) { .case-strip { grid-template-columns: 1fr 1fr; } }
+@media(max-width: 520px) { .case-strip { grid-template-columns: 1fr; } }
+.fact {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .7rem .8rem;
+}
+.fact .k { color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-size: .68rem; font-weight: 800; }
+.fact .v { margin-top: .15rem; font-weight: 700; word-break: break-word; }
+.docs {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.doc {
+  display: grid;
+  grid-template-columns: 34px 1fr 108px;
+  gap: .75rem;
+  align-items: start;
+  padding: .85rem;
+  border-bottom: 1px solid #eee8dd;
+  background: white;
+}
+.doc:last-child { border-bottom: none; }
+.doc.selected { background: #fffdf0; }
+.doc h3 { margin: 0; font-size: .95rem; color: var(--navy); }
+.doc .meta { color: var(--muted); font-size: .76rem; margin-top: .15rem; }
+.doc textarea { margin-top: .55rem; min-height: 76px; font-size: .8rem; }
+.tier {
+  display: inline-block;
+  border-radius: 999px;
+  padding: .15rem .55rem;
+  font-size: .7rem;
+  font-weight: 800;
+  text-align: center;
+}
+.tier.t1 { background: var(--green-bg); color: var(--green); }
+.tier.t2 { background: var(--blue-bg); color: var(--blue); }
+.tier.t3 { background: var(--amber-bg); color: var(--amber); }
+.tier.t4 { background: #f3f4f6; color: #4b5563; }
+.radio-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .8rem;
+}
+@media(max-width: 720px) { .radio-row { grid-template-columns: 1fr; } }
+.choice {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .9rem 1rem;
+  background: white;
+  cursor: pointer;
+}
+.choice:has(input:checked) { border-color: var(--navy); background: #f8fbff; }
+.choice strong { color: var(--navy); }
+.choice p { margin: .25rem 0 0; color: var(--muted); font-size: .84rem; }
+.split {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1rem;
+}
+@media(max-width: 900px) { .split { grid-template-columns: 1fr; } }
+.output-box {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  padding: 1rem;
+  min-height: 240px;
+  white-space: pre-wrap;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.75;
+}
+.side-box {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  padding: .85rem;
+  max-height: 430px;
+  overflow: auto;
+  font-size: .8rem;
+}
+.source-pill {
+  display: block;
+  padding: .5rem .6rem;
+  border-left: 4px solid var(--gold);
+  background: var(--cream);
+  margin-bottom: .45rem;
+}
+details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .85rem 1rem;
+  background: white;
+}
+details summary { cursor: pointer; font-weight: 700; color: var(--navy); }
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f7f7f5;
+  border-radius: 6px;
+  padding: .85rem;
+  font-family: var(--mono);
+  font-size: .78rem;
+}
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Case Summary Generator</h1>
+    <div class="sub">Civil Rights Litigation Clearinghouse · Draft summaries from metadata and selected documents</div>
+  </div>
+  <div class="right">
+    Standalone tool · v1<br>
+    API keys stay in this browser session
+  </div>
+</header>
+
+<main>
+  <div id="status" class="status"></div>
+  <div id="progress" class="progress"><div class="spinner"></div><span id="progress-text">Working...</span></div>
+
+  <section class="card">
+    <div class="card-title">
+      <h2><span class="step">1</span>Load Case Data</h2>
+      <span class="note">Use the API if it works here, or paste/upload the same data below.</span>
+    </div>
+
+    <div class="grid-3">
+      <div class="field">
+        <label for="clearinghouse-token">Clearinghouse API Token</label>
+        <input id="clearinghouse-token" type="password" placeholder="Token value">
+      </div>
+      <div class="field">
+        <label for="case-id">Clearinghouse Case ID</label>
+        <input id="case-id" type="text" placeholder="e.g. 18003">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn-primary" id="import-btn" onclick="GeneratorApp.importCase()">Import from Clearinghouse</button>
+      </div>
+    </div>
+
+    <details>
+      <summary>Safari import helper</summary>
+      <div class="field" style="margin-top: .9rem;">
+        <label for="proxy-url">Optional Local Proxy URL</label>
+        <input id="proxy-url" type="text" placeholder="http://127.0.0.1:8765/">
+        <div class="note" style="margin-top:.3rem;">
+          Safari may block direct Clearinghouse API calls from a file opened on your computer. If that happens,
+          run <code>python tools/clearinghouse_api_proxy.py</code> from the project folder and enter
+          <code>http://127.0.0.1:8765/</code> here.
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Paste or upload fallback data</summary>
+      <div class="grid-2" style="margin-top: .9rem;">
+        <div class="field">
+          <label for="case-json">Case JSON or generator package</label>
+          <textarea id="case-json" placeholder="Paste a single case object, a paginated API response, or a crlc-summary-package-v1 JSON package."></textarea>
+          <div class="btn-row">
+            <button class="btn-secondary" onclick="GeneratorApp.loadPastedCase()">Load Pasted JSON</button>
+            <button class="btn-ghost" onclick="document.getElementById('package-file').click()">Upload JSON</button>
+            <input class="hidden" id="package-file" type="file" accept=".json,.txt" onchange="GeneratorApp.loadFile(this, 'case-json', true)">
+          </div>
+        </div>
+        <div class="field">
+          <label for="source-chunks">Source chunks or document text</label>
+          <textarea id="source-chunks" placeholder="Paste Chunk 1: format, plain text, or an array of source objects."></textarea>
+          <div class="btn-row">
+            <button class="btn-secondary" onclick="GeneratorApp.loadSourceChunks()">Load Source Text</button>
+            <button class="btn-ghost" onclick="document.getElementById('sources-file').click()">Upload Sources</button>
+            <input class="hidden" id="sources-file" type="file" accept=".json,.jsonl,.txt,.md" onchange="GeneratorApp.loadFile(this, 'source-chunks', false)">
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="review-card">
+    <div class="card-title">
+      <h2><span class="step">2</span>Review Metadata and Documents</h2>
+      <span class="note" id="selected-count">No case loaded yet.</span>
+    </div>
+    <div id="case-facts" class="case-strip"></div>
+    <div class="btn-row" style="margin-bottom: .75rem;">
+      <button class="btn-secondary" onclick="GeneratorApp.selectRecommended()">Select Recommended Documents</button>
+      <button class="btn-secondary" onclick="GeneratorApp.selectAll()">Select All</button>
+      <button class="btn-secondary" onclick="GeneratorApp.selectNone()">Select None</button>
+    </div>
+    <div id="documents" class="docs">
+      <div style="padding: 1rem; color: var(--muted);">Load a case or paste source chunks to review source material.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-title">
+      <h2><span class="step">3</span>Choose Generation Mode</h2>
+      <span class="note">The full mode uses selected source chunks when available.</span>
+    </div>
+    <div class="radio-row">
+      <label class="choice">
+        <input type="radio" name="mode" value="metadata-only" checked>
+        <strong>Metadata-only quick draft</strong>
+        <p>Uses structured metadata only. Best for quick first-pass summaries and low hallucination risk.</p>
+      </label>
+      <label class="choice">
+        <input type="radio" name="mode" value="metadata-plus-documents">
+        <strong>Metadata + selected documents full draft</strong>
+        <p>Uses metadata plus selected source chunks for richer procedural detail and later source review.</p>
+      </label>
+    </div>
+
+    <div class="grid-3" style="margin-top: 1rem;">
+      <div class="field">
+        <label for="summary-length">Summary Length</label>
+        <select id="summary-length">
+          <option value="short">Short</option>
+          <option value="standard" selected>Standard</option>
+          <option value="detailed">Detailed</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="provider">Provider</label>
+        <select id="provider">
+          <option value="anthropic" selected>Claude / Anthropic</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="model">Model</label>
+        <select id="model">
+          <option value="claude-sonnet-4-6" selected>Claude Sonnet 4.6 (recommended)</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 snapshot</option>
+          <option value="claude-haiku-4-5">Claude Haiku 4.5 alias</option>
+          <option value="claude-opus-4-7">Claude Opus 4.7</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="llm-key">Anthropic API Key</label>
+      <input id="llm-key" type="password" placeholder="sk-ant-...">
+      <div class="note" style="margin-top:.3rem;">Used only to call Anthropic directly from this browser. The key is not saved.</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="generate-btn" onclick="GeneratorApp.generate()">Generate Draft Summary</button>
+      <button class="btn-secondary" id="test-model-btn" onclick="GeneratorApp.testModelAccess()">Test API Key / Model</button>
+      <button class="btn-ghost" onclick="GeneratorApp.loadExample()">Load Example</button>
+      <button class="btn-ghost" onclick="GeneratorApp.clearAll()">Clear</button>
+    </div>
+  </section>
+
+  <section class="card" id="output-card">
+    <div class="card-title">
+      <h2><span class="step">4</span>Draft and Export</h2>
+      <span class="note">Download the package and open it in the evaluator tool.</span>
+    </div>
+    <div class="split">
+      <div>
+        <label for="summary-output">Generated Summary</label>
+        <textarea id="summary-output" class="summary" placeholder="The generated draft summary will appear here. You may also edit it before exporting."></textarea>
+        <div class="btn-row">
+          <button class="btn-secondary" onclick="GeneratorApp.copySummary()">Copy Summary</button>
+          <button class="btn-secondary" onclick="GeneratorApp.downloadPackage()">Download Package for Evaluator</button>
+          <button class="btn-secondary" onclick="GeneratorApp.copyPackage()">Copy Package JSON</button>
+        </div>
+      </div>
+      <div>
+        <label>Selected Sources</label>
+        <div id="selected-sources" class="side-box">No selected sources yet.</div>
+      </div>
+    </div>
+    <details style="margin-top: 1rem;">
+      <summary>View prompt sent to model</summary>
+      <pre id="prompt-preview">No prompt has been built yet.</pre>
+    </details>
+  </section>
+</main>
+
+<script>
+const SCHEMA_VERSION = 'crlc-summary-package-v1';
+const PROMPT_VERSION = 'case-summary-generator-v1';
+const CRLC_BASE = 'https://clearinghouse.net/api/v2p1';
+
+const FIELD_ORDER = [
+  ['name', 'Case name'],
+  ['id', 'Clearinghouse ID'],
+  ['court', 'Court'],
+  ['state', 'State'],
+  ['jurisdiction', 'Jurisdiction'],
+  ['filing_date', 'Filing date'],
+  ['filing_year', 'Filing year'],
+  ['case_status', 'Case status'],
+  ['case_ongoing', 'Case ongoing'],
+  ['case_types', 'Case type(s)'],
+  ['special_case_type', 'Special case type'],
+  ['special_collections', 'Special collections'],
+  ['causes', 'Causes of action'],
+  ['cause_other', 'Other causes'],
+  ['constitutional_clause', 'Constitutional basis'],
+  ['issues', 'Issues'],
+  ['custom_issues', 'Custom issues'],
+  ['plaintiff_type', 'Plaintiff type'],
+  ['plaintiff_description', 'Plaintiff description'],
+  ['defendant_type', 'Defendant type'],
+  ['case_defendants', 'Defendants'],
+  ['attorney_orgs', 'Attorney organizations'],
+  ['pro_se_status', 'Pro se status'],
+  ['public_interest_lawyer', 'Public interest lawyer'],
+  ['class_action_sought', 'Class action sought'],
+  ['class_action_granted', 'Class action granted'],
+  ['prevailing_party', 'Prevailing party'],
+  ['relief_natures', 'Relief type(s)'],
+  ['relief_nature_other', 'Other relief'],
+  ['relief_sources', 'Relief source(s)'],
+  ['content_of_injunction', 'Content of injunction'],
+  ['permanent_injunction', 'Permanent injunction'],
+  ['injunction_duration', 'Injunction duration'],
+  ['settlement_agreement', 'Settlement/resolution'],
+  ['settlement_judgment_date', 'Settlement/judgment date'],
+  ['settlement_judgment_year', 'Settlement/judgment year'],
+  ['defendant_payment', 'Defendant payment'],
+  ['order_start_year', 'Order start year'],
+  ['order_end_year', 'Order end year'],
+  ['closing_year', 'Closing year'],
+  ['terminating_date', 'Terminating date'],
+  ['facility_type', 'Facility type'],
+  ['never_filed', 'Never filed'],
+  ['non_docket_case_number', 'Non-docket case number'],
+  ['non_docket_case_number_type', 'Non-docket case number type'],
+  ['docket_status', 'Docket status'],
+  ['available_documents', 'Available document types'],
+  ['related_cases', 'Related cases']
+];
+
+const EXCLUDED_FIELDS = new Set([
+  'summary', 'summary_short', 'summary_tiny', 'summary_published_date',
+  'summary_updated_date', 'case_documents_url', 'case_dockets_url',
+  'case_resources_url', 'clearinghouse_link', 'is_active', 'last_checked_date',
+  'created_at', 'updated_at', 'updated_at_remote', 'documents_url', 'dockets_url'
+]);
+
+const AppState = {
+  caseMeta: null,
+  documents: [],
+  generatedSummary: '',
+  currentPrompt: ''
+};
+
+const Utils = {
+  esc(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  },
+  stripHtml(value) {
+    const div = document.createElement('div');
+    div.innerHTML = String(value || '');
+    return div.textContent || div.innerText || '';
+  },
+  formatValue(value) {
+    if (value === null || value === undefined || value === '') return '';
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (Array.isArray(value)) {
+      const parts = value.map(item => {
+        if (item === null || item === undefined) return '';
+        if (typeof item === 'object') {
+          const preferred = ['value', 'name', 'institution', 'title', 'description']
+            .map(k => item[k]).filter(Boolean);
+          if (preferred.length) return preferred.join(', ');
+          return Object.values(item).filter(Boolean).slice(0, 3).join('; ');
+        }
+        return String(item);
+      }).filter(Boolean);
+      return parts.join('; ');
+    }
+    if (typeof value === 'object') {
+      return Object.entries(value)
+        .filter(([, v]) => v !== null && v !== undefined && v !== '')
+        .slice(0, 6)
+        .map(([k, v]) => `${k}: ${Utils.formatValue(v)}`)
+        .join('; ');
+    }
+    return Utils.stripHtml(String(value)).trim();
+  },
+  normalizeToken(token) {
+    return String(token || '').trim().replace(/^Token\s+/i, '');
+  },
+  wordCount(text) {
+    return String(text || '').trim().split(/\s+/).filter(Boolean).length;
+  },
+  download(filename, text, type) {
+    const blob = new Blob([text], { type: type || 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+};
+
+const Renderer = {
+  status(kind, message) {
+    const el = document.getElementById('status');
+    el.className = `status visible ${kind}`;
+    el.textContent = message;
+  },
+  clearStatus() {
+    const el = document.getElementById('status');
+    el.className = 'status';
+    el.textContent = '';
+  },
+  setProgress(message) {
+    document.getElementById('progress-text').textContent = message;
+    document.getElementById('progress').classList.add('visible');
+  },
+  clearProgress() {
+    document.getElementById('progress').classList.remove('visible');
+    document.getElementById('progress-text').textContent = 'Working...';
+  },
+  renderAll() {
+    this.renderFacts();
+    this.renderDocuments();
+    this.renderSelectedSources();
+  },
+  renderFacts() {
+    const meta = AppState.caseMeta || {};
+    const facts = [
+      ['Case', meta.name || 'Not loaded'],
+      ['Clearinghouse ID', meta.id || ''],
+      ['Court', meta.court || ''],
+      ['Status', meta.case_status || meta.status || '']
+    ];
+    document.getElementById('case-facts').innerHTML = facts.map(([k, v]) => `
+      <div class="fact"><div class="k">${Utils.esc(k)}</div><div class="v">${Utils.esc(v || '-')}</div></div>
+    `).join('');
+    this.updateCount();
+  },
+  renderDocuments() {
+    const wrap = document.getElementById('documents');
+    if (!AppState.documents.length) {
+      wrap.innerHTML = '<div style="padding:1rem;color:var(--muted);">No documents or source chunks loaded yet.</div>';
+      return;
+    }
+    wrap.innerHTML = AppState.documents.map((doc, i) => `
+      <div class="doc ${doc.selected ? 'selected' : ''}" data-index="${i}">
+        <div><input type="checkbox" ${doc.selected ? 'checked' : ''} onchange="GeneratorApp.toggleDoc(${i}, this.checked)"></div>
+        <div>
+          <h3>${Utils.esc(doc.title || `Document ${i + 1}`)}</h3>
+          <div class="meta">${Utils.esc(doc.type || 'Document')} · ${Utils.esc(doc.date || 'No date')} · ${Utils.esc(doc.id || '')}</div>
+          <textarea placeholder="Paste or edit source text for this document." oninput="GeneratorApp.updateDocText(${i}, this.value)">${Utils.esc(doc.text || '')}</textarea>
+        </div>
+        <div><span class="tier t${doc.tier || 3}">Tier ${doc.tier || 3}</span></div>
+      </div>
+    `).join('');
+    this.updateCount();
+  },
+  updateCount() {
+    const selected = AppState.documents.filter(d => d.selected).length;
+    const total = AppState.documents.length;
+    document.getElementById('selected-count').textContent = AppState.caseMeta
+      ? `${selected} of ${total} source(s) selected`
+      : 'No case loaded yet.';
+  },
+  renderSelectedSources() {
+    const selected = DocumentSelector.selectedSources();
+    const el = document.getElementById('selected-sources');
+    if (!selected.length) {
+      el.textContent = 'No selected sources yet.';
+      return;
+    }
+    el.innerHTML = selected.map(src => `
+      <span class="source-pill">
+        <strong>Chunk ${src.index}: ${Utils.esc(src.title)}</strong><br>
+        ${Utils.esc(src.type || 'Document')} · ${Utils.esc(src.date || '')}<br>
+        ${Utils.wordCount(src.text)} words
+      </span>
+    `).join('');
+  }
+};
+
+const DocumentSelector = {
+  tierFor(doc) {
+    const hay = `${doc.document_type || doc.type || ''} ${doc.order_type || ''} ${doc.title || ''}`.toLowerCase();
+    if (/opinion|order|judgment|consent.?decree|settlement/.test(hay)) return 1;
+    if (/complaint|motion to dismiss|dismiss|summary judgment|class certification|injunction|brief|memorandum/.test(hay)) return 2;
+    if (/declaration|affidavit|expert|receiver|report|transcript|discovery/.test(hay)) return 3;
+    if (/docket|pacer|correspondence|press|newsletter/.test(hay)) return 4;
+    return 3;
+  },
+  mapDocument(raw, index) {
+    const text = raw.text || raw.full_text || raw.plain_text || raw.extracted_text || raw.ocr_text || raw.description || raw.public_note || '';
+    const title = raw.title || raw.document_title || raw.description || `Document ${index + 1}`;
+    const type = raw.document_type || raw.type || raw.order_type || 'Document';
+    const mapped = {
+      index: index + 1,
+      id: String(raw.id || raw.document_id || index + 1),
+      title,
+      type,
+      date: raw.date || raw.filed_date || raw.display_date || '',
+      tier: 3,
+      text: Utils.stripHtml(text),
+      selected: false,
+      raw
+    };
+    mapped.tier = this.tierFor(mapped);
+    mapped.selected = mapped.tier <= 2 && index < 8;
+    return mapped;
+  },
+  selectedSources() {
+    return AppState.documents
+      .filter(d => d.selected)
+      .map((d, idx) => ({
+        index: idx + 1,
+        id: d.id,
+        title: d.title,
+        type: d.type,
+        date: d.date,
+        tier: d.tier,
+        text: d.text || ''
+      }));
+  },
+  parseSourceText(text) {
+    const trimmed = String(text || '').trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      const arr = Array.isArray(parsed) ? parsed : (parsed.sources || parsed.documents || []);
+      if (Array.isArray(arr) && arr.length) return arr.map((item, i) => this.mapDocument(item, i));
+    } catch (_) {}
+
+    const split = trimmed.split(/(?:^|\n)\s*Chunk\s+(\d+):\s*\n/i);
+    if (split.length > 2) {
+      const docs = [];
+      for (let i = 1; i < split.length - 1; i += 2) {
+        const chunkNo = split[i];
+        const body = split[i + 1] || '';
+        const title = (body.match(/Title:\s*(.+)/i) || [])[1] || `Chunk ${chunkNo}`;
+        const type = (body.match(/Type:\s*(.+)/i) || [])[1] || 'Document';
+        const date = (body.match(/Date:\s*(.+)/i) || [])[1] || '';
+        const cleaned = body
+          .replace(/\[DOCUMENT\]/gi, '')
+          .replace(/Title:\s*.+/i, '')
+          .replace(/Type:\s*.+/i, '')
+          .replace(/Date:\s*.+/i, '')
+          .trim();
+        docs.push(this.mapDocument({ id: chunkNo, title, document_type: type, date, text: cleaned }, docs.length));
+      }
+      return docs;
+    }
+    return [this.mapDocument({ id: 'manual-1', title: 'Pasted Source Text', document_type: 'Document', text: trimmed }, 0)];
+  }
+};
+
+const ApiClient = {
+  async request(url, token) {
+    const proxyUrl = document.getElementById('proxy-url').value.trim();
+    if (proxyUrl) return await this.requestViaProxy(proxyUrl, url, token);
+
+    const headers = {
+      'Authorization': `Token ${Utils.normalizeToken(token)}`,
+      'Accept': 'application/json'
+    };
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      let msg = `Request failed with status ${res.status}`;
+      try {
+        const body = await res.json();
+        msg = body.detail || body.error || JSON.stringify(body);
+      } catch (_) {}
+      throw new Error(msg);
+    }
+    return await res.json();
+  },
+  async requestViaProxy(proxyUrl, url, token) {
+    const endpoint = proxyUrl.replace(/\/?$/, '/');
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        url,
+        token: Utils.normalizeToken(token)
+      })
+    });
+    if (!res.ok) {
+      let msg = `Proxy request failed with status ${res.status}`;
+      try {
+        const body = await res.json();
+        msg = body.detail || body.error || msg;
+      } catch (_) {}
+      throw new Error(msg);
+    }
+    return await res.json();
+  },
+  async fetchCase(caseId, token) {
+    const url = `${CRLC_BASE}/cases/?case_id=${encodeURIComponent(caseId)}`;
+    const payload = await this.request(url, token);
+    const results = payload.results || (Array.isArray(payload) ? payload : []);
+    if (!results.length) throw new Error('No case was found for that Clearinghouse ID.');
+    return results[0];
+  },
+  async fetchDocuments(caseId, token) {
+    let url = `${CRLC_BASE}/cases/${encodeURIComponent(caseId)}/documents/`;
+    const docs = [];
+    let pages = 0;
+    while (url && pages < 5) {
+      const payload = await this.request(url, token);
+      docs.push(...(payload.results || (Array.isArray(payload) ? payload : [])));
+      url = payload.next || null;
+      pages += 1;
+    }
+    if (url) {
+      Renderer.status('warn', 'Imported the first 5 pages of documents and stopped to avoid pulling too much data in the browser.');
+    }
+    return docs;
+  }
+};
+
+const PromptBuilder = {
+  renderMetadata(meta) {
+    const lines = ['## Case Metadata'];
+    for (const [key, label] of FIELD_ORDER) {
+      if (EXCLUDED_FIELDS.has(key)) continue;
+      const value = Utils.formatValue(meta[key]);
+      if (value) lines.push(`**${label}:** ${value}`);
+    }
+    return lines.join('\n');
+  },
+  lengthInstruction(length) {
+    if (length === 'short') return 'Write a concise summary of about 250 to 450 words.';
+    if (length === 'detailed') return 'Write a detailed summary of about 750 to 1,200 words, but do not pad thin cases.';
+    return 'Write a standard Clearinghouse-style summary of about 450 to 800 words.';
+  },
+  systemPrompt(mode, length) {
+    const common = `You are a legal research assistant drafting case summaries for the Civil Rights Litigation Clearinghouse at the University of Michigan Law School.
+
+Write neutral, professional prose for researchers, practitioners, law students, and the public. Use past tense for resolved case events and present tense only for ongoing conditions or general legal principles. Do not use bullet points. Do not mention that you are an AI tool.`;
+
+    if (mode === 'metadata-only') {
+      return `${common}
+
+Use ONLY the structured metadata provided by the user. Do not invent facts that are absent from the metadata. If a required fact is missing, either omit it or briefly note that the metadata does not provide it. ${this.lengthInstruction(length)}`;
+    }
+
+    return `${common}
+
+Use ONLY the structured metadata and selected source chunks provided by the user. Ground procedural details in the source chunks. If the sources conflict with the metadata, say only what is clearly supported. ${this.lengthInstruction(length)}`;
+  },
+  userPrompt(mode, length) {
+    const meta = this.renderMetadata(AppState.caseMeta || {});
+    const required = `## Required Coverage
+Cover the dispute and stakes, filing date and full court name, party types, causes of action and statutory or constitutional basis, class-action status, relief sought, key procedural events, and outcome or current status when supported by the provided material.`;
+    if (mode === 'metadata-only') {
+      return `${meta}
+
+${required}
+
+## Draft Summary`;
+    }
+    const sources = DocumentSelector.selectedSources();
+    const sourceText = sources.length
+      ? sources.map(src => `[CHUNK ${src.index}]\nTitle: ${src.title}\nType: ${src.type}\nDate: ${src.date}\n\n${(src.text || '').slice(0, 6000)}`).join('\n\n')
+      : '(No source chunks were selected. Fall back to metadata-only drafting and do not invent procedural detail.)';
+    return `${meta}
+
+${required}
+
+## Selected Source Chunks
+${sourceText}
+
+## Draft Summary`;
+  },
+  build(mode, length) {
+    return {
+      system: this.systemPrompt(mode, length),
+      user: this.userPrompt(mode, length)
+    };
+  }
+};
+
+const ProviderAdapter = {
+  async testModel({ apiKey, model }) {
+    return await this.callAnthropic({
+      apiKey,
+      model,
+      maxTokens: 16,
+      system: 'You are checking whether this API key and model can generate.',
+      user: 'Reply with exactly: ok'
+    });
+  },
+  async generate({ provider, apiKey, model, system, user, length }) {
+    if (provider !== 'anthropic') throw new Error('Only Anthropic is implemented in this standalone version.');
+    const maxTokens = length === 'detailed' ? 2600 : length === 'short' ? 1200 : 1900;
+    return await this.callAnthropic({ apiKey, model, maxTokens, system, user });
+  },
+  async callAnthropic({ apiKey, model, maxTokens, system, user }) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        system,
+        messages: [{ role: 'user', content: user }]
+      })
+    });
+    if (!res.ok) {
+      let msg = `Anthropic API error ${res.status}`;
+      try {
+        const body = await res.json();
+        msg = this.formatAnthropicError(body, res.status, model);
+      } catch (_) {}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    return (data.content || []).map(part => part.text || '').join('\n').trim();
+  },
+  formatAnthropicError(body, status, model) {
+    const raw = body?.error?.message || body?.message || JSON.stringify(body);
+    if (/^model:|model/i.test(raw)) {
+      return `The selected model was rejected by Anthropic: ${raw}. Try "Claude Sonnet 4.6" or "Claude Haiku 4.5 snapshot"; if those also fail, this API key may not have access to that model.`;
+    }
+    if (/authentication|api key|x-api-key|invalid x-api-key|not found/i.test(raw) || status === 401) {
+      return `Anthropic rejected the API key. Check that you pasted the full key and that it is active. Details: ${raw}`;
+    }
+    if (/credit|balance|billing|workspace|permission|not authorized|access/i.test(raw) || status === 403) {
+      return `Anthropic rejected access for this key or workspace. Check model access, billing, and workspace permissions. Details: ${raw}`;
+    }
+    if (/rate/i.test(raw) || status === 429) {
+      return `Anthropic rate limited this request. Wait a minute or choose a smaller/faster model. Details: ${raw}`;
+    }
+    return `${raw} (HTTP ${status}, model ${model})`;
+  }
+};
+
+const PackageSerializer = {
+  buildPackage() {
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    const model = document.getElementById('model').value;
+    const summary = document.getElementById('summary-output').value.trim();
+    const meta = AppState.caseMeta || {};
+    return {
+      schemaVersion: SCHEMA_VERSION,
+      createdAt: new Date().toISOString(),
+      case: {
+        id: String(meta.id || document.getElementById('case-id').value || ''),
+        name: meta.name || '',
+        court: meta.court || '',
+        state: meta.state || '',
+        status: meta.case_status || meta.status || '',
+        metadata: meta
+      },
+      generation: {
+        mode,
+        provider: document.getElementById('provider').value,
+        model,
+        promptVersion: PROMPT_VERSION,
+        summary
+      },
+      sources: DocumentSelector.selectedSources(),
+      reference: {
+        summary: Utils.stripHtml(meta.summary || ''),
+        summary_short: Utils.stripHtml(meta.summary_short || ''),
+        summary_tiny: Utils.stripHtml(meta.summary_tiny || '')
+      }
+    };
+  },
+  applyPackage(pkg) {
+    const meta = pkg.case?.metadata || pkg.case || {};
+    AppState.caseMeta = { ...meta, id: pkg.case?.id || meta.id, name: pkg.case?.name || meta.name };
+    AppState.documents = (pkg.sources || []).map((src, i) => {
+      const mapped = DocumentSelector.mapDocument(src, i);
+      mapped.selected = true;
+      return mapped;
+    });
+    AppState.generatedSummary = pkg.generation?.summary || '';
+    document.getElementById('summary-output').value = AppState.generatedSummary;
+    Renderer.renderAll();
+  }
+};
+
+const GeneratorApp = {
+  autoFillProxyUrl() {
+    const proxyInput = document.getElementById('proxy-url');
+    const isLocalHttp = location.protocol.startsWith('http') &&
+      /^(127\.0\.0\.1|localhost)(:\d+)?$/.test(location.host);
+    if (isLocalHttp && proxyInput && !proxyInput.value.trim()) {
+      proxyInput.value = `${location.origin}/`;
+      Renderer.status('info', 'Local helper detected. Clearinghouse imports will use the built-in localhost proxy.');
+    }
+  },
+  async importCase() {
+    Renderer.clearStatus();
+    const token = document.getElementById('clearinghouse-token').value.trim();
+    const caseId = document.getElementById('case-id').value.trim();
+    if (!token || !caseId) {
+      Renderer.status('err', 'Enter both a Clearinghouse API token and a case ID, or use the paste/upload fallback.');
+      return;
+    }
+    const btn = document.getElementById('import-btn');
+    btn.disabled = true;
+    btn.textContent = 'Importing...';
+    try {
+      const meta = await ApiClient.fetchCase(caseId, token);
+      const docs = await ApiClient.fetchDocuments(meta.id || caseId, token);
+      AppState.caseMeta = meta;
+      AppState.documents = docs.map((doc, i) => DocumentSelector.mapDocument(doc, i));
+      Renderer.status('ok', `Imported ${meta.name || 'case'} with ${AppState.documents.length} document record(s). Paste document text into selected rows if the API did not return text.`);
+      Renderer.renderAll();
+    } catch (err) {
+      Renderer.status('warn', `Direct import did not complete: ${err.message}. This can happen if the browser blocks the API request. Use the paste/upload fallback below.`);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Import from Clearinghouse';
+    }
+  },
+  loadPastedCase() {
+    const raw = document.getElementById('case-json').value.trim();
+    if (!raw) {
+      Renderer.status('err', 'Paste case JSON or a generator package first.');
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.schemaVersion === SCHEMA_VERSION) {
+        PackageSerializer.applyPackage(parsed);
+        Renderer.status('ok', 'Loaded generator package.');
+        return;
+      }
+      const meta = parsed.results?.[0] || parsed.case?.metadata || parsed.case || parsed;
+      AppState.caseMeta = meta;
+      const docs = parsed.sources || parsed.case_documents || parsed.documents || meta.case_documents || [];
+      if (Array.isArray(docs) && docs.length) {
+        AppState.documents = docs.map((doc, i) => DocumentSelector.mapDocument(doc, i));
+      }
+      Renderer.status('ok', `Loaded ${meta.name || 'case metadata'} from pasted JSON.`);
+      Renderer.renderAll();
+    } catch (err) {
+      Renderer.status('err', `Could not parse JSON: ${err.message}`);
+    }
+  },
+  loadSourceChunks() {
+    const text = document.getElementById('source-chunks').value;
+    const docs = DocumentSelector.parseSourceText(text);
+    if (!docs.length) {
+      Renderer.status('err', 'No source chunks were found.');
+      return;
+    }
+    AppState.documents = docs;
+    if (!AppState.caseMeta) {
+      AppState.caseMeta = { id: document.getElementById('case-id').value.trim(), name: 'Manually loaded case' };
+    }
+    Renderer.status('ok', `Loaded ${docs.length} source chunk(s).`);
+    Renderer.renderAll();
+  },
+  loadFile(input, targetId, parseAfter) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = event => {
+      document.getElementById(targetId).value = event.target.result;
+      if (parseAfter) this.loadPastedCase();
+    };
+    reader.readAsText(file);
+  },
+  toggleDoc(index, checked) {
+    AppState.documents[index].selected = checked;
+    Renderer.renderDocuments();
+    Renderer.renderSelectedSources();
+  },
+  updateDocText(index, value) {
+    AppState.documents[index].text = value;
+    Renderer.renderSelectedSources();
+  },
+  selectRecommended() {
+    AppState.documents.forEach((doc, i) => { doc.selected = doc.tier <= 2 && i < 8; });
+    Renderer.renderDocuments();
+    Renderer.renderSelectedSources();
+  },
+  selectAll() {
+    AppState.documents.forEach(doc => { doc.selected = true; });
+    Renderer.renderDocuments();
+    Renderer.renderSelectedSources();
+  },
+  selectNone() {
+    AppState.documents.forEach(doc => { doc.selected = false; });
+    Renderer.renderDocuments();
+    Renderer.renderSelectedSources();
+  },
+  async generate() {
+    Renderer.clearStatus();
+    Renderer.clearProgress();
+    if (!AppState.caseMeta) {
+      Renderer.status('err', 'Load case metadata before generating a summary.');
+      return;
+    }
+    const apiKey = document.getElementById('llm-key').value.trim();
+    if (!apiKey) {
+      Renderer.status('err', 'Enter an Anthropic API key to generate a draft.');
+      return;
+    }
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    const length = document.getElementById('summary-length').value;
+    const provider = document.getElementById('provider').value;
+    const model = document.getElementById('model').value;
+    const prompt = PromptBuilder.build(mode, length);
+    AppState.currentPrompt = `SYSTEM:\n${prompt.system}\n\nUSER:\n${prompt.user}`;
+    document.getElementById('prompt-preview').textContent = AppState.currentPrompt;
+    const btn = document.getElementById('generate-btn');
+    btn.disabled = true;
+    document.getElementById('test-model-btn').disabled = true;
+    btn.textContent = 'Generating...';
+    document.getElementById('summary-output').value = 'Generation in progress...\n\nBuilding the prompt and calling Claude. This can take 15-60 seconds for document-grounded summaries.';
+    Renderer.status('info', 'Calling Claude to generate the draft summary. Leave this page open.');
+    Renderer.setProgress('Generation in progress: sending prompt to Anthropic...');
+    try {
+      const summary = await ProviderAdapter.generate({
+        provider, apiKey, model, system: prompt.system, user: prompt.user, length
+      });
+      Renderer.setProgress('Generation complete: rendering draft summary...');
+      AppState.generatedSummary = summary;
+      document.getElementById('summary-output').value = summary;
+      Renderer.renderSelectedSources();
+      Renderer.status('ok', 'Draft generated. Review it before downloading the evaluator package.');
+    } catch (err) {
+      document.getElementById('summary-output').value = '';
+      Renderer.status('err', `Generation failed: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      document.getElementById('test-model-btn').disabled = false;
+      btn.textContent = 'Generate Draft Summary';
+      Renderer.clearProgress();
+    }
+  },
+  async testModelAccess() {
+    Renderer.clearStatus();
+    Renderer.clearProgress();
+    const apiKey = document.getElementById('llm-key').value.trim();
+    const model = document.getElementById('model').value;
+    if (!apiKey) {
+      Renderer.status('err', 'Enter an Anthropic API key before testing the model.');
+      return;
+    }
+    const btn = document.getElementById('test-model-btn');
+    btn.disabled = true;
+    btn.textContent = 'Testing...';
+    Renderer.status('info', `Testing API key and model access for ${model}.`);
+    Renderer.setProgress('Testing model access with a tiny Anthropic request...');
+    try {
+      await ProviderAdapter.testModel({ apiKey, model });
+      Renderer.status('ok', `Anthropic accepted this API key and model (${model}).`);
+    } catch (err) {
+      Renderer.status('err', `Model test failed: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Test API Key / Model';
+      Renderer.clearProgress();
+    }
+  },
+  copySummary() {
+    const text = document.getElementById('summary-output').value;
+    navigator.clipboard.writeText(text);
+    Renderer.status('ok', 'Summary copied to clipboard.');
+  },
+  copyPackage() {
+    const pkg = PackageSerializer.buildPackage();
+    navigator.clipboard.writeText(JSON.stringify(pkg, null, 2));
+    Renderer.status('ok', 'Package JSON copied to clipboard.');
+  },
+  downloadPackage() {
+    const pkg = PackageSerializer.buildPackage();
+    const id = (pkg.case.id || 'case').replace(/[^a-zA-Z0-9_-]/g, '');
+    Utils.download(`crlc_summary_package_${id || 'case'}.json`, JSON.stringify(pkg, null, 2), 'application/json');
+  },
+  clearAll() {
+    AppState.caseMeta = null;
+    AppState.documents = [];
+    AppState.generatedSummary = '';
+    AppState.currentPrompt = '';
+    ['case-id', 'case-json', 'source-chunks', 'summary-output'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('prompt-preview').textContent = 'No prompt has been built yet.';
+    Renderer.clearStatus();
+    Renderer.renderAll();
+  },
+  loadExample() {
+    AppState.caseMeta = {
+      id: 'DEMO-001',
+      name: 'United States v. Denver Housing Authority',
+      court: 'U.S. District Court for the District of Colorado',
+      state: 'Colorado',
+      case_status: 'Approved',
+      filing_date: '1993-09-22',
+      causes: ['Title VII of the Civil Rights Act of 1964'],
+      plaintiff_description: 'United States',
+      defendant_type: [{ value: 'Local government agency' }],
+      relief_natures: ['Injunctive Relief', 'Monetary Relief'],
+      settlement_judgment_date: '1994-01-04',
+      summary: ''
+    };
+    AppState.documents = DocumentSelector.parseSourceText(`Chunk 1:
+[DOCUMENT]
+Title: Complaint
+Type: Complaint
+Date: 1993-09-22
+
+The United States of America alleged that the Denver Housing Authority discriminated on the basis of sex in violation of Title VII of the Civil Rights Act of 1964, 42 U.S.C. Section 2000e et seq. The complaint sought injunctive relief, back pay, and other make-whole relief.
+
+Chunk 2:
+[DOCUMENT]
+Title: Consent Decree
+Type: Settlement
+Date: 1994-01-04
+
+Judge John L. Kane entered a consent decree permanently enjoining the Denver Housing Authority from discriminating on the basis of sex, requiring a back-pay award of $35,000, and requiring production of the sexual harassment policy to government counsel within three months.`);
+    document.getElementById('case-id').value = 'DEMO-001';
+    Renderer.status('ok', 'Example case loaded.');
+    Renderer.renderAll();
+  }
+};
+
+Renderer.renderAll();
+GeneratorApp.autoFillProxyUrl();
+</script>
+</body>
+</html>

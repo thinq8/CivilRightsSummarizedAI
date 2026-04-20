@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Summary Evaluator · Civil Rights Clearinghouse</title>
+<style>
+:root {
+  --navy: #00274C;
+  --navy-light: #0d3a5c;
+  --gold: #FFCB05;
+  --cream: #faf8f5;
+  --cream-dark: #f0ede8;
+  --text: #1f2937;
+  --muted: #5f6b7a;
+  --border: #d9d4cc;
+  --card: #ffffff;
+  --green: #166534;
+  --green-bg: #dcfce7;
+  --amber: #92400e;
+  --amber-bg: #fef3c7;
+  --red: #991b1b;
+  --red-bg: #fee2e2;
+  --blue: #1d4ed8;
+  --blue-bg: #dbeafe;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.55;
+}
+header {
+  background: var(--navy);
+  color: white;
+  border-bottom: 4px solid var(--gold);
+  padding: 1.2rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+header h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+header .sub { color: var(--gold); font-size: .86rem; margin-top: .15rem; }
+header .right { color: rgba(255,255,255,.8); font-size: .75rem; text-align: right; }
+main { max-width: 1240px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.15rem;
+}
+.card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  border-bottom: 2px solid var(--gold);
+  margin-bottom: 1rem;
+  padding-bottom: .45rem;
+}
+.card-title h2 {
+  margin: 0;
+  color: var(--navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.12rem;
+}
+.note { color: var(--muted); font-size: .83rem; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+@media(max-width: 820px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  header .right { text-align: left; }
+}
+.field { margin-bottom: .95rem; }
+label {
+  display: block;
+  margin-bottom: .35rem;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+input[type="text"], input[type="password"], textarea, select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+  color: var(--text);
+  font: inherit;
+  padding: .65rem .75rem;
+}
+textarea {
+  min-height: 150px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: .85rem;
+  line-height: 1.55;
+}
+textarea.summary { min-height: 260px; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; }
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(0,39,76,.1);
+}
+.btn-row { display: flex; gap: .65rem; align-items: center; flex-wrap: wrap; margin-top: .75rem; }
+button {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: .65rem 1.05rem;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: .88rem;
+  cursor: pointer;
+}
+button:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: var(--navy); color: white; }
+.btn-primary:hover { background: var(--navy-light); }
+.btn-secondary { background: white; color: var(--navy); border-color: var(--border); }
+.btn-secondary:hover { border-color: var(--navy); background: var(--cream-dark); }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px dashed var(--border); }
+.btn-ghost:hover { color: var(--navy); border-color: var(--navy); }
+.hidden { display: none !important; }
+.status {
+  display: none;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  padding: .85rem 1rem;
+  border: 1px solid;
+  font-size: .88rem;
+}
+.status.visible { display: block; }
+.status.info { background: var(--blue-bg); border-color: #93c5fd; color: #1e3a8a; }
+.status.ok { background: var(--green-bg); border-color: #86efac; color: var(--green); }
+.status.warn { background: var(--amber-bg); border-color: #fcd34d; color: var(--amber); }
+.status.err { background: var(--red-bg); border-color: #fca5a5; color: var(--red); }
+.results { display: none; }
+.results.visible { display: block; }
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  flex-wrap: wrap;
+  border: 1px solid;
+  border-radius: 8px;
+  padding: .9rem 1rem;
+  margin-bottom: 1rem;
+}
+.status-bar.PASS { background: var(--green-bg); border-color: #86efac; color: var(--green); }
+.status-bar.REVIEW { background: var(--amber-bg); border-color: #fcd34d; color: var(--amber); }
+.status-bar.REJECT { background: var(--red-bg); border-color: #fca5a5; color: var(--red); }
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  background: rgba(0,0,0,.08);
+  padding: .18rem .65rem;
+  font-size: .75rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+.split {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1rem;
+}
+@media(max-width: 900px) { .split { grid-template-columns: 1fr; } }
+.summary-rendered {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  padding: 1rem 1.1rem;
+  min-height: 260px;
+  max-height: 520px;
+  overflow: auto;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.85;
+}
+.summary-rendered mark {
+  background: #fff3bf;
+  border-bottom: 2px solid var(--amber);
+  padding: 0 .1rem;
+}
+.sentence-ok { border-bottom: 2px solid #86efac; }
+.sentence-bad { background: #fff5f5; border-bottom: 2px solid #fca5a5; }
+sup.cite {
+  color: var(--blue);
+  cursor: pointer;
+  font-size: .7em;
+  font-weight: 900;
+  margin-left: 2px;
+}
+.sources {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  max-height: 520px;
+  overflow: auto;
+}
+.chunk {
+  padding: .75rem .85rem;
+  border-bottom: 1px solid #eee8dd;
+  font-size: .8rem;
+}
+.chunk:last-child { border-bottom: none; }
+.chunk.hl { background: #fffdf0; border-left: 4px solid var(--gold); }
+.chunk-h { color: var(--navy); font-weight: 900; }
+.chunk-m { color: var(--muted); font-size: .72rem; margin: .15rem 0 .35rem; }
+.flag-list { list-style: none; padding: 0; margin: 0; }
+.flag-list li {
+  border-left: 4px solid #9ca3af;
+  border-radius: 5px;
+  margin-bottom: .55rem;
+  padding: .65rem .8rem;
+  background: #f8fafc;
+}
+.flag-list li.critical { border-color: #dc2626; background: var(--red-bg); }
+.flag-list li.warning { border-color: #f59e0b; background: var(--amber-bg); }
+.flag-list li.info { border-color: #94a3b8; background: #f8fafc; }
+.flag-code {
+  display: inline-block;
+  margin-right: .45rem;
+  border-radius: 4px;
+  background: rgba(0,0,0,.08);
+  padding: .08rem .38rem;
+  font-family: var(--mono);
+  font-size: .72rem;
+  font-weight: 900;
+}
+.evidence {
+  display: block;
+  margin-top: .35rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: .78rem;
+  word-break: break-word;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .75rem;
+}
+@media(max-width: 760px) { .metrics { grid-template-columns: 1fr 1fr; } }
+.metric {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .75rem .85rem;
+}
+.metric .k { color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-size: .68rem; font-weight: 900; }
+.metric .v { margin-top: .2rem; font-size: 1.15rem; font-weight: 900; color: var(--navy); }
+.score-grid {
+  display: grid;
+  grid-template-columns: 170px 1fr 48px;
+  gap: .55rem .75rem;
+  align-items: center;
+}
+.track { height: 7px; border-radius: 4px; background: #e5e7eb; }
+.fill { height: 7px; border-radius: 4px; }
+.review-box {
+  background: #f0f4ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: .95rem;
+}
+.checks { display: flex; gap: 1rem; flex-wrap: wrap; }
+.checks label { text-transform: none; letter-spacing: 0; color: var(--text); font-weight: 600; }
+details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .85rem 1rem;
+  background: white;
+}
+details summary { cursor: pointer; color: var(--navy); font-weight: 800; }
+table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+td, th { border-bottom: 1px solid var(--border); padding: .45rem .35rem; text-align: left; }
+th { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Case Summary Evaluator</h1>
+    <div class="sub">Civil Rights Litigation Clearinghouse · QA checks, source review, and human feedback</div>
+  </div>
+  <div class="right">
+    Standalone tool · v1<br>
+    Imports crlc-summary-package-v1
+  </div>
+</header>
+
+<main>
+  <div id="notice" class="status"></div>
+
+  <section class="card">
+    <div class="card-title">
+      <h2>Evaluate a Summary</h2>
+      <span class="note">Paste text directly or import a package from the generator.</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label for="summary-input">Case Summary</label>
+        <textarea id="summary-input" class="summary" placeholder="Paste the generated or draft case summary here."></textarea>
+        <div class="btn-row">
+          <button class="btn-ghost" onclick="document.getElementById('package-file').click()">Import Generator Package</button>
+          <input class="hidden" id="package-file" type="file" accept=".json,.txt" onchange="EvaluatorApp.loadPackageFile(this)">
+          <button class="btn-ghost" onclick="EvaluatorApp.loadExample()">Load Example</button>
+          <button class="btn-ghost" onclick="EvaluatorApp.clearAll()">Clear</button>
+        </div>
+      </div>
+      <div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="case-name">Case Name</label>
+            <input id="case-name" type="text" placeholder="Optional">
+          </div>
+          <div class="field">
+            <label for="case-id">Clearinghouse ID</label>
+            <input id="case-id" type="text" placeholder="Optional">
+          </div>
+        </div>
+        <div class="field">
+          <label for="source-input">Source Documents</label>
+          <textarea id="source-input" placeholder="Optional. Paste Chunk 1: format, plain text, or source JSON."></textarea>
+        </div>
+        <div class="field">
+          <label for="reference-input">Reference Summary</label>
+          <textarea id="reference-input" placeholder="Optional. Enables length, overlap, and statute-diff checks."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <details>
+      <summary>LLM judge settings (optional)</summary>
+      <div class="grid-2" style="margin-top: .9rem;">
+        <div class="field">
+          <label for="api-key">Anthropic API Key</label>
+          <input id="api-key" type="password" placeholder="sk-ant-...">
+          <div class="note" style="margin-top:.3rem;">Used only to call Anthropic directly from this browser. Leave blank for QA-only.</div>
+        </div>
+        <div class="field">
+        <label for="model">Model</label>
+        <select id="model">
+            <option value="claude-sonnet-4-6" selected>Claude Sonnet 4.6</option>
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 snapshot</option>
+            <option value="claude-haiku-4-5">Claude Haiku 4.5 alias</option>
+            <option value="claude-opus-4-7">Claude Opus 4.7</option>
+        </select>
+        </div>
+      </div>
+    </details>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="eval-btn" onclick="EvaluatorApp.evaluate(true)">Run QA and Judge</button>
+      <button class="btn-secondary" onclick="EvaluatorApp.evaluate(false)">Run QA Only</button>
+    </div>
+  </section>
+
+  <div id="results" class="results">
+    <div id="status-bar" class="status-bar PASS">
+      <span id="status-badge" class="badge">PASS</span>
+      <span id="status-meta"></span>
+    </div>
+
+    <section class="card">
+      <div class="card-title">
+        <h2>Summary and Sources</h2>
+        <span class="note" id="grounding-note">Grounding not run.</span>
+      </div>
+      <div class="split">
+        <div>
+          <label>Reviewed Summary</label>
+          <div id="summary-rendered" class="summary-rendered"></div>
+        </div>
+        <div>
+          <label>Source Documents (<span id="source-count">0</span>)</label>
+          <div id="sources-rendered" class="sources"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">
+        <h2>Structural QA Flags</h2>
+        <span class="note">Local checks always run without an API key.</span>
+      </div>
+      <div id="flags-rendered"></div>
+    </section>
+
+    <section class="card" id="reference-card">
+      <div class="card-title">
+        <h2>Reference Comparison</h2>
+        <span class="note">Shown when a reference summary is available.</span>
+      </div>
+      <div id="reference-rendered"></div>
+    </section>
+
+    <section class="card" id="judge-card">
+      <div class="card-title">
+        <h2>LLM Judge Scorecard</h2>
+        <span class="note">Reference-free review against source chunks.</span>
+      </div>
+      <div id="judge-rendered"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">
+        <h2>Human Reviewer Feedback</h2>
+        <span class="note">Export this JSON for later analysis.</span>
+      </div>
+      <div class="review-box">
+        <div class="grid-2">
+          <div class="field">
+            <label for="reviewer-rating">Overall Rating</label>
+            <select id="reviewer-rating">
+              <option value="">Select one</option>
+              <option value="5">5 - Publish as-is</option>
+              <option value="4">4 - Minor edits</option>
+              <option value="3">3 - Several fixes</option>
+              <option value="2">2 - Substantial rewrite</option>
+              <option value="1">1 - Unusable</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Reviewer Checks</label>
+            <div class="checks">
+              <label><input type="checkbox" id="fb-accurate"> Factually accurate</label>
+              <label><input type="checkbox" id="fb-complete"> Complete</label>
+              <label><input type="checkbox" id="fb-publish"> Would publish with minor edits</label>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="fb-notes">Notes and Corrections</label>
+          <textarea id="fb-notes" placeholder="Describe factual errors, missing elements, source problems, or style issues."></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="EvaluatorApp.downloadReview()">Download Review JSON</button>
+        <button class="btn-secondary" onclick="EvaluatorApp.copyReview()">Copy Review JSON</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const SCHEMA_VERSION = 'crlc-summary-package-v1';
+const MONTHS = 'January|February|March|April|May|June|July|August|September|October|November|December|Jan\\.?|Feb\\.?|Mar\\.?|Apr\\.?|Jun\\.?|Jul\\.?|Aug\\.?|Sep\\.?|Sept\\.?|Oct\\.?|Nov\\.?|Dec\\.?';
+
+const AppState = {
+  package: null,
+  sources: [],
+  qa: null,
+  referenceMetrics: null,
+  citations: [],
+  judgeScores: null,
+  lastReview: null
+};
+
+const Utils = {
+  esc(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  },
+  stripHtml(value) {
+    const div = document.createElement('div');
+    div.innerHTML = String(value || '');
+    return div.textContent || div.innerText || '';
+  },
+  wordCount(text) {
+    return String(text || '').trim().split(/\s+/).filter(Boolean).length;
+  },
+  sentences(text) {
+    return String(text || '')
+      .replace(/\b(U)\.S\./g, '$1@@S@@')
+      .replace(/\b(v)\./g, '$1@@')
+      .split(/(?<=[.!?])\s+(?=[A-Z"([])/)
+      .map(s => s.replace(/@@S@@/g, '.S.').replace(/@@/g, '.').trim())
+      .filter(Boolean);
+  },
+  download(filename, text) {
+    const blob = new Blob([text], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+};
+
+const SourceParser = {
+  parse(text) {
+    const trimmed = String(text || '').trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      const arr = Array.isArray(parsed) ? parsed : (parsed.sources || parsed.documents || []);
+      if (Array.isArray(arr) && arr.length) {
+        return arr.map((src, i) => this.normalize(src, i));
+      }
+    } catch (_) {}
+
+    const split = trimmed.split(/(?:^|\n)\s*Chunk\s+(\d+):\s*\n/i);
+    if (split.length > 2) {
+      const chunks = [];
+      for (let i = 1; i < split.length - 1; i += 2) {
+        const chunkNo = split[i];
+        const body = split[i + 1] || '';
+        const title = (body.match(/Title:\s*(.+)/i) || [])[1] || `Chunk ${chunkNo}`;
+        const type = (body.match(/Type:\s*(.+)/i) || [])[1] || 'Document';
+        const date = (body.match(/Date:\s*(.+)/i) || [])[1] || '';
+        const cleaned = body
+          .replace(/\[DOCUMENT\]/gi, '')
+          .replace(/Title:\s*.+/i, '')
+          .replace(/Type:\s*.+/i, '')
+          .replace(/Date:\s*.+/i, '')
+          .trim();
+        chunks.push(this.normalize({ index: chunkNo, title, type, date, text: cleaned }, chunks.length));
+      }
+      return chunks;
+    }
+    return [this.normalize({ title: 'Pasted Source Text', type: 'Document', text: trimmed }, 0)];
+  },
+  normalize(src, index) {
+    return {
+      index: Number(src.index || index + 1),
+      id: String(src.id || src.document_id || src.index || index + 1),
+      title: src.title || src.description || `Source ${index + 1}`,
+      type: src.type || src.document_type || 'Document',
+      date: src.date || src.filed_date || '',
+      tier: src.tier || 3,
+      text: Utils.stripHtml(src.text || src.full_text || src.plain_text || src.description || '')
+    };
+  }
+};
+
+const QaChecker = {
+  check(summary, reference) {
+    const flags = [];
+    const add = (severity, code, message, evidence = '') => flags.push({ severity, code, message, evidence });
+    const words = Utils.wordCount(summary);
+
+    if (!summary.trim()) add('critical', 'EMPTY', 'No summary text provided.');
+    else if (words < 30) add('critical', 'EXTREMELY_SHORT', `Only ${words} words; likely truncated or empty.`);
+    else if (words < 80) add('warning', 'TOO_SHORT', `Only ${words} words. Clearinghouse summaries usually need more detail.`);
+    if (words > 2000) add('warning', 'TOO_LONG', `Summary is ${words} words; review for over-inclusion.`);
+
+    const rawArtifact = summary.match(/\[DOCUMENT\]|\[DOC\]|<\|user\|>|<\|assistant\|>|\[\/INST\]|^\s*UNITED STATES DISTRICT COURT\b|^\s*\/s\//mi);
+    if (rawArtifact) add('critical', 'RAW_DOCUMENT_ARTIFACT', 'Raw filing or prompt artifact leaked into the summary.', rawArtifact[0]);
+
+    const meta = summary.match(/\b(as an ai|here(?:'s| is) (?:a |the |your )?(?:summary|case summary)|based on the (?:provided|above|given)|i (?:will|am|can) (?:now )?(?:provide|summarize|write))/i);
+    if (meta) add('critical', 'META_PROMPT_LEAK', 'Meta-prompt language detected.', meta[0]);
+
+    const garbled = summary.match(/\b\d{1,2}[a-z]{2,4}\d{1,4}\b|\b2[0o][0o]\d\b|\b2[0-9]{4,}\b|\b(?:19|20)\d[a-z]\b/i);
+    if (garbled) add('critical', 'GARBLED_DATE', 'Possible malformed year or date detected.', garbled[0]);
+
+    const repeat = this.findRepeatedPhrase(summary);
+    if (repeat) add('critical', 'REPETITION_LOOP', 'Repeated phrase suggests a generation loop.', repeat);
+
+    const present = (summary.match(/\b(files|sues|alleges|argues|claims|seeks|brings|moves|asks|demands|challenges)\b/gi) || []).length;
+    if (present > 2) add('warning', 'WRONG_TENSE', `${present} present-tense litigation verbs found. Clearinghouse style usually uses past tense.`);
+
+    const judgment = summary.match(/\bjudgement\b/i);
+    if (judgment) add('info', 'WRONG_JUDGMENT_SPELLING', 'Use "judgment" rather than "judgement".', judgment[0]);
+
+    if (!new RegExp(`\\b(filed|commenced|brought|initiated)\\b[^.]{0,120}(?:${MONTHS}|\\d{4})|(?:${MONTHS})\\s+\\d{1,2},?\\s*\\d{4}`, 'i').test(summary)) {
+      add('warning', 'MISSING_FILING_DATE', 'No clear filing date detected.');
+    }
+    if (!/\b(U\.?S\.?\s*District\s*Court|United States District Court|Court of Appeals|Supreme Court|District of [A-Z][a-z]+|Eastern District|Western District|Northern District|Southern District|Middle District)\b/.test(summary)) {
+      add('warning', 'MISSING_COURT', 'No full court name detected.');
+    }
+    if (!/\b(42\s*U\.?S\.?C\.?|28\s*U\.?S\.?C\.?|Title\s+(VII|IX|II|III|IV|VI)|Americans with Disabilities Act|ADA\b|Section\s+1983|§\s*1983|First Amendment|Fourth Amendment|Fifth Amendment|Eighth Amendment|Fourteenth Amendment|Equal Protection|Due Process|Voting Rights Act|Civil Rights Act|Rehabilitation Act|Fair Housing Act|FHA\b|IDEA\b|FMLA\b|RFRA\b|FLSA\b)\b/i.test(summary)) {
+      add('warning', 'MISSING_STATUTE', 'No statute or constitutional provision detected.');
+    }
+    if (!/\b(damages|injunctive relief|declaratory (judgment|relief)|compensatory|punitive|attorneys?'?\s*fees|restitution|preliminary injunction|permanent injunction|back pay|monetary|consent decree|settlement)\b/i.test(summary)) {
+      add('info', 'MISSING_REMEDY', 'No remedy or relief language detected.');
+    }
+    if (!/\b(dismissed|granted|denied|settled|affirmed|reversed|remanded|entered|approved|certified|judgment for|judgment against|consent decree|case closed|terminated)\b/i.test(summary)) {
+      add('info', 'MISSING_OUTCOME', 'No outcome or disposition language detected.');
+    }
+    if (!/\b(class action|class of|putative class|individual action|individual capacity|pro se|on behalf of (herself|himself|themselves))\b/i.test(summary)) {
+      add('info', 'MISSING_ACTION_TYPE', 'Class versus individual action not clearly specified.');
+    }
+
+    const metrics = reference ? ReferenceChecker.compare(summary, reference, add) : null;
+    return {
+      flags,
+      status: flags.some(f => f.severity === 'critical') ? 'REJECT' : flags.some(f => f.severity === 'warning') ? 'REVIEW' : 'PASS',
+      wordCount: words,
+      criticalCount: flags.filter(f => f.severity === 'critical').length,
+      warningCount: flags.filter(f => f.severity === 'warning').length,
+      infoCount: flags.filter(f => f.severity === 'info').length,
+      referenceMetrics: metrics
+    };
+  },
+  findRepeatedPhrase(text) {
+    const words = String(text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+    const seen = new Map();
+    for (let i = 0; i < words.length - 5; i++) {
+      const phrase = words.slice(i, i + 6).join(' ');
+      const count = (seen.get(phrase) || 0) + 1;
+      if (count >= 3) return phrase;
+      seen.set(phrase, count);
+    }
+    return '';
+  }
+};
+
+const STATUTES = [
+  ['42 U.S.C. § 1983', /\b(42\s*U\.?S\.?C\.?\s*§?\s*1983|Section\s+1983|§\s*1983)\b/i],
+  ['Title VII', /\b(Title\s+VII|42\s*U\.?S\.?C\.?\s*§?\s*2000e)\b/i],
+  ['Americans with Disabilities Act', /\b(ADA|Americans with Disabilities Act)\b/i],
+  ['Rehabilitation Act', /\bRehabilitation Act\b/i],
+  ['Fair Housing Act', /\b(Fair Housing Act|FHA)\b/i],
+  ['Voting Rights Act', /\bVoting Rights Act\b/i],
+  ['First Amendment', /\bFirst Amendment\b/i],
+  ['Fourth Amendment', /\bFourth Amendment\b/i],
+  ['Eighth Amendment', /\bEighth Amendment\b/i],
+  ['Fourteenth Amendment', /\b(Fourteenth Amendment|Equal Protection|Due Process)\b/i],
+  ['IDEA', /\b(IDEA|Individuals with Disabilities Education Act)\b/i],
+  ['FMLA', /\b(FMLA|Family and Medical Leave Act)\b/i],
+  ['RFRA', /\b(RFRA|Religious Freedom Restoration Act)\b/i],
+  ['FLSA', /\b(FLSA|Fair Labor Standards Act)\b/i]
+];
+
+const ReferenceChecker = {
+  compare(summary, reference, addFlag) {
+    const predWords = Utils.wordCount(summary);
+    const refWords = Utils.wordCount(reference);
+    const ratio = refWords ? predWords / refWords : null;
+    const f1 = this.wordF1(summary, reference);
+    const predStats = this.statutes(summary);
+    const refStats = this.statutes(reference);
+    const missing = refStats.filter(s => !predStats.includes(s));
+    const unsupported = predStats.filter(s => !refStats.includes(s));
+    if (ratio !== null && (ratio < 0.4 || ratio > 2.5)) {
+      addFlag('warning', 'REFERENCE_LENGTH_MISMATCH', `Summary length is ${ratio.toFixed(2)}x the reference length.`, `${predWords} vs ${refWords} words`);
+    }
+    for (const s of missing) addFlag('warning', 'UNCITED_STATUTE', `Reference cites ${s}, but the summary does not.`, s);
+    for (const s of unsupported) addFlag('warning', 'UNSUPPORTED_STATUTE', `Summary cites ${s}, but the reference does not.`, s);
+    return { predWords, refWords, ratio, wordF1: f1, summaryStatutes: predStats, referenceStatutes: refStats, missing, unsupported };
+  },
+  statutes(text) {
+    return STATUTES.filter(([, re]) => re.test(text)).map(([name]) => name);
+  },
+  wordF1(a, b) {
+    const stop = new Set('the a an and or of to in for on with by from this that was were is are be been as at it its into their his her they them case court plaintiff defendant'.split(' '));
+    const toks = s => String(s || '').toLowerCase().match(/[a-z0-9]+/g)?.filter(t => t.length > 2 && !stop.has(t)) || [];
+    const aa = toks(a), bb = toks(b);
+    if (!aa.length || !bb.length) return 0;
+    const ca = new Map(), cb = new Map();
+    aa.forEach(t => ca.set(t, (ca.get(t) || 0) + 1));
+    bb.forEach(t => cb.set(t, (cb.get(t) || 0) + 1));
+    let overlap = 0;
+    for (const [t, n] of ca) overlap += Math.min(n, cb.get(t) || 0);
+    const p = overlap / aa.length;
+    const r = overlap / bb.length;
+    return p + r ? (2 * p * r) / (p + r) : 0;
+  }
+};
+
+const Judge = {
+  system: `You are an expert legal editor for the Civil Rights Litigation Clearinghouse.
+Evaluate an AI-generated case summary against the source chunks provided. Do not use outside knowledge.
+
+Required elements: opening stakes, filing date and court, class or individual action, counsel when available, legal basis, remedies sought, key procedural events, and outcome or current status.
+
+Respond with ONLY valid JSON matching this shape:
+{
+  "citations": [
+    {"s": 0, "sentence": "Sentence text.", "chunks": [1], "grounded": true}
+  ],
+  "scores": {
+    "factual_grounding": 4,
+    "completeness": 3,
+    "legal_accuracy": 4,
+    "outcome_accuracy": 4,
+    "overall": 4,
+    "rationale": "One sentence."
+  }
+}`,
+  buildPrompt(summary, sources) {
+    const sourceText = sources.length
+      ? sources.map(s => `[CHUNK ${s.index}]\nTitle: ${s.title}\nType: ${s.type}\nDate: ${s.date}\n\n${(s.text || '').slice(0, 3000)}`).join('\n\n')
+      : '(No source chunks provided. Score factual_grounding as 0 and explain that grounding cannot be checked.)';
+    return `SOURCE CHUNKS:\n${sourceText}\n\nSUMMARY:\n${summary}`;
+  },
+  async run(apiKey, model, summary, sources) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 2600,
+        system: this.system,
+        messages: [{ role: 'user', content: this.buildPrompt(summary, sources) }]
+      })
+    });
+    if (!res.ok) {
+      let msg = `Anthropic API error ${res.status}`;
+      try {
+        const body = await res.json();
+        msg = body.error?.message || msg;
+      } catch (_) {}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    const raw = (data.content || []).map(p => p.text || '').join('\n').trim();
+    const jsonText = raw.startsWith('```') ? raw.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '') : raw;
+    return JSON.parse(jsonText.match(/\{[\s\S]*\}/)?.[0] || jsonText);
+  }
+};
+
+const Renderer = {
+  notice(kind, msg) {
+    const el = document.getElementById('notice');
+    el.className = `status visible ${kind}`;
+    el.textContent = msg;
+  },
+  clearNotice() {
+    document.getElementById('notice').className = 'status';
+  },
+  renderResults() {
+    const qa = AppState.qa;
+    const bar = document.getElementById('status-bar');
+    bar.className = `status-bar ${qa.status}`;
+    document.getElementById('status-badge').textContent = qa.status;
+    const judge = AppState.judgeScores ? ` · Judge overall ${AppState.judgeScores.overall}/5` : '';
+    document.getElementById('status-meta').textContent = `${qa.wordCount} words · ${qa.flags.length} flag(s)${judge}`;
+    document.getElementById('summary-rendered').innerHTML = this.renderSummary();
+    this.renderSources();
+    this.renderFlags();
+    this.renderReference();
+    this.renderJudge();
+    document.getElementById('results').classList.add('visible');
+  },
+  renderSummary() {
+    const summary = document.getElementById('summary-input').value.trim();
+    const citations = AppState.citations || [];
+    if (citations.length) {
+      document.getElementById('grounding-note').textContent = `${citations.filter(c => !c.grounded).length} ungrounded sentence(s) found by judge.`;
+      return citations.map(c => {
+        const ids = (c.chunks || []).map(Number).filter(Boolean);
+        const sup = ids.length ? `<sup class="cite" onclick="EvaluatorApp.highlightChunks([${ids.join(',')}])">[${ids.join(',')}]</sup>` : '';
+        return `<span class="${c.grounded ? 'sentence-ok' : 'sentence-bad'}">${Utils.esc(c.sentence)}${sup} </span>`;
+      }).join('');
+    }
+    document.getElementById('grounding-note').textContent = AppState.sources.length
+      ? 'Source chunks loaded. Enter an API key and run judge for sentence grounding.'
+      : 'No source chunks loaded.';
+    let html = Utils.esc(summary);
+    for (const flag of AppState.qa.flags) {
+      if (!flag.evidence || flag.evidence.length > 80) continue;
+      const safe = Utils.esc(flag.evidence);
+      html = html.replace(safe, `<mark>${safe}</mark>`);
+    }
+    return html.replace(/\n/g, '<br>');
+  },
+  renderSources() {
+    const wrap = document.getElementById('sources-rendered');
+    document.getElementById('source-count').textContent = AppState.sources.length;
+    if (!AppState.sources.length) {
+      wrap.innerHTML = '<div class="chunk">No source documents provided.</div>';
+      return;
+    }
+    wrap.innerHTML = AppState.sources.map(src => `
+      <div class="chunk" id="chunk-${src.index}">
+        <div class="chunk-h">Chunk ${src.index}: ${Utils.esc(src.title)}</div>
+        <div class="chunk-m">${Utils.esc(src.type)} · ${Utils.esc(src.date)} · ${Utils.wordCount(src.text)} words</div>
+        <div>${Utils.esc((src.text || '').slice(0, 650))}${(src.text || '').length > 650 ? '...' : ''}</div>
+      </div>
+    `).join('');
+  },
+  renderFlags() {
+    const flags = AppState.qa.flags;
+    if (!flags.length) {
+      document.getElementById('flags-rendered').innerHTML = '<strong style="color:var(--green)">No structural issues detected.</strong>';
+      return;
+    }
+    document.getElementById('flags-rendered').innerHTML = `<ul class="flag-list">${flags.map(f => `
+      <li class="${f.severity}">
+        <span class="flag-code">${Utils.esc(f.code)}</span>${Utils.esc(f.message)}
+        ${f.evidence ? `<span class="evidence">${Utils.esc(f.evidence)}</span>` : ''}
+      </li>
+    `).join('')}</ul>`;
+  },
+  renderReference() {
+    const card = document.getElementById('reference-card');
+    const m = AppState.qa.referenceMetrics;
+    if (!m) {
+      card.style.display = 'none';
+      return;
+    }
+    card.style.display = '';
+    document.getElementById('reference-rendered').innerHTML = `
+      <div class="metrics">
+        <div class="metric"><div class="k">Summary Words</div><div class="v">${m.predWords}</div></div>
+        <div class="metric"><div class="k">Reference Words</div><div class="v">${m.refWords}</div></div>
+        <div class="metric"><div class="k">Length Ratio</div><div class="v">${m.ratio ? m.ratio.toFixed(2) : '-'}</div></div>
+        <div class="metric"><div class="k">Word F1</div><div class="v">${m.wordF1.toFixed(2)}</div></div>
+      </div>
+      <table style="margin-top: .9rem;">
+        <tr><th>Statute Signal</th><th>Detected</th></tr>
+        <tr><td>Summary statutes</td><td>${Utils.esc(m.summaryStatutes.join(', ') || 'None')}</td></tr>
+        <tr><td>Reference statutes</td><td>${Utils.esc(m.referenceStatutes.join(', ') || 'None')}</td></tr>
+        <tr><td>Missing from summary</td><td>${Utils.esc(m.missing.join(', ') || 'None')}</td></tr>
+        <tr><td>Summary only</td><td>${Utils.esc(m.unsupported.join(', ') || 'None')}</td></tr>
+      </table>`;
+  },
+  renderJudge() {
+    const card = document.getElementById('judge-card');
+    const scores = AppState.judgeScores;
+    if (!scores) {
+      card.style.display = 'none';
+      return;
+    }
+    card.style.display = '';
+    const dims = [
+      ['factual_grounding', 'Factual Grounding'],
+      ['completeness', 'Completeness'],
+      ['legal_accuracy', 'Legal Accuracy'],
+      ['outcome_accuracy', 'Outcome Accuracy'],
+      ['overall', 'Overall Quality']
+    ];
+    document.getElementById('judge-rendered').innerHTML = `
+      <div class="score-grid">
+        ${dims.map(([key, label]) => {
+          const val = Number(scores[key] || 0);
+          const pct = Math.max(0, Math.min(100, (val / 5) * 100));
+          const color = val >= 4 ? '#16a34a' : val >= 3 ? '#f59e0b' : '#dc2626';
+          return `<div>${label}</div><div class="track"><div class="fill" style="width:${pct}%;background:${color}"></div></div><div><strong>${val}/5</strong></div>`;
+        }).join('')}
+      </div>
+      <p class="note" style="margin-top:.8rem;">${Utils.esc(scores.rationale || '')}</p>`;
+  }
+};
+
+const ReviewSerializer = {
+  build() {
+    const summary = document.getElementById('summary-input').value.trim();
+    return {
+      schemaVersion: 'crlc-summary-review-v1',
+      sourcePackageVersion: AppState.package?.schemaVersion || null,
+      createdAt: new Date().toISOString(),
+      case: {
+        id: document.getElementById('case-id').value.trim(),
+        name: document.getElementById('case-name').value.trim()
+      },
+      summary,
+      qa: AppState.qa,
+      judgeScores: AppState.judgeScores,
+      citations: AppState.citations,
+      ungroundedSentences: (AppState.citations || []).filter(c => !c.grounded).map(c => c.sentence),
+      reviewer: {
+        rating: Number(document.getElementById('reviewer-rating').value) || null,
+        factuallyAccurate: document.getElementById('fb-accurate').checked,
+        complete: document.getElementById('fb-complete').checked,
+        wouldPublishWithMinorEdits: document.getElementById('fb-publish').checked,
+        notes: document.getElementById('fb-notes').value
+      },
+      sources: AppState.sources.map(s => ({ index: s.index, id: s.id, title: s.title, type: s.type, date: s.date, tier: s.tier }))
+    };
+  }
+};
+
+const EvaluatorApp = {
+  loadPackageFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = event => this.applyPackageText(event.target.result);
+    reader.readAsText(file);
+  },
+  applyPackageText(text) {
+    try {
+      const pkg = JSON.parse(text);
+      if (pkg.schemaVersion !== SCHEMA_VERSION) {
+        throw new Error('This is not a crlc-summary-package-v1 generator package.');
+      }
+      AppState.package = pkg;
+      document.getElementById('case-name').value = pkg.case?.name || '';
+      document.getElementById('case-id').value = pkg.case?.id || '';
+      document.getElementById('summary-input').value = pkg.generation?.summary || '';
+      document.getElementById('reference-input').value = pkg.reference?.summary || '';
+      AppState.sources = (pkg.sources || []).map((s, i) => SourceParser.normalize(s, i));
+      document.getElementById('source-input').value = AppState.sources.map(s =>
+        `Chunk ${s.index}:\n[DOCUMENT]\nTitle: ${s.title}\nType: ${s.type}\nDate: ${s.date}\n\n${s.text}`
+      ).join('\n\n');
+      Renderer.notice('ok', `Imported package for ${pkg.case?.name || 'case'}.`);
+    } catch (err) {
+      Renderer.notice('err', `Could not import package: ${err.message}`);
+    }
+  },
+  collectInputs() {
+    AppState.sources = SourceParser.parse(document.getElementById('source-input').value);
+    return {
+      summary: document.getElementById('summary-input').value.trim(),
+      reference: document.getElementById('reference-input').value.trim(),
+      apiKey: document.getElementById('api-key').value.trim(),
+      model: document.getElementById('model').value
+    };
+  },
+  async evaluate(runJudge) {
+    Renderer.clearNotice();
+    const input = this.collectInputs();
+    if (!input.summary) {
+      Renderer.notice('err', 'Paste or import a summary before running checks.');
+      return;
+    }
+    AppState.citations = [];
+    AppState.judgeScores = null;
+    AppState.qa = QaChecker.check(input.summary, input.reference);
+
+    const btn = document.getElementById('eval-btn');
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+    try {
+      if (runJudge) {
+        if (!input.apiKey) {
+          Renderer.notice('warn', 'No API key entered. Showing local QA only.');
+        } else {
+          Renderer.notice('info', 'Calling Claude judge for source-grounding review.');
+          const judged = await Judge.run(input.apiKey, input.model, input.summary, AppState.sources);
+          AppState.citations = judged.citations || [];
+          AppState.judgeScores = judged.scores || null;
+        }
+      }
+      Renderer.renderResults();
+      AppState.lastReview = ReviewSerializer.build();
+      if (!runJudge && AppState.sources.length) {
+        Renderer.notice('ok', 'QA checks complete. Source chunks are loaded; judge grounding was not run.');
+      } else if (!AppState.sources.length && runJudge && input.apiKey) {
+        Renderer.notice('warn', 'Judge ran without source chunks, so grounding cannot be verified.');
+      } else {
+        Renderer.notice('ok', 'Evaluation complete.');
+      }
+    } catch (err) {
+      Renderer.notice('err', `Judge failed: ${err.message}. Showing local QA results only.`);
+      Renderer.renderResults();
+      AppState.lastReview = ReviewSerializer.build();
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Run QA and Judge';
+    }
+  },
+  highlightChunks(ids) {
+    document.querySelectorAll('.chunk').forEach(el => el.classList.remove('hl'));
+    ids.forEach(id => {
+      const el = document.getElementById(`chunk-${id}`);
+      if (el) {
+        el.classList.add('hl');
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  },
+  downloadReview() {
+    const review = ReviewSerializer.build();
+    const id = (review.case.id || review.case.name || 'case').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48) || 'case';
+    Utils.download(`crlc_summary_review_${id}.json`, JSON.stringify(review, null, 2));
+  },
+  copyReview() {
+    navigator.clipboard.writeText(JSON.stringify(ReviewSerializer.build(), null, 2));
+    Renderer.notice('ok', 'Review JSON copied to clipboard.');
+  },
+  clearAll() {
+    AppState.package = null;
+    AppState.sources = [];
+    AppState.qa = null;
+    AppState.citations = [];
+    AppState.judgeScores = null;
+    ['summary-input', 'source-input', 'reference-input', 'case-name', 'case-id', 'fb-notes'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    ['fb-accurate', 'fb-complete', 'fb-publish'].forEach(id => { document.getElementById(id).checked = false; });
+    document.getElementById('reviewer-rating').value = '';
+    document.getElementById('results').classList.remove('visible');
+    Renderer.clearNotice();
+  },
+  loadExample() {
+    document.getElementById('case-name').value = 'United States v. Denver Housing Authority';
+    document.getElementById('case-id').value = 'DEMO-001';
+    document.getElementById('summary-input').value = 'United States v. Denver Housing Authority was a Title VII sex discrimination case filed in the U.S. District Court for the District of Colorado on September 22, 1993. The United States alleged that the Denver Housing Authority discriminated on the basis of sex in violation of Title VII of the Civil Rights Act of 1964, 42 U.S.C. Section 2000e. The case sought injunctive relief, back pay, and other make-whole relief. On January 4, 1994, Judge John L. Kane entered a consent decree that enjoined the housing authority from sex discrimination, required a $35,000 back-pay award, and required production of its sexual harassment policy. The decree terminated two years after entry.';
+    document.getElementById('source-input').value = `Chunk 1:
+[DOCUMENT]
+Title: Complaint
+Type: Complaint
+Date: 1993-09-22
+
+The United States of America alleged that the Denver Housing Authority discriminated on the basis of sex in violation of Title VII of the Civil Rights Act of 1964, 42 U.S.C. Section 2000e et seq. The complaint sought injunctive relief, back pay, and other make-whole relief.
+
+Chunk 2:
+[DOCUMENT]
+Title: Consent Decree
+Type: Settlement
+Date: 1994-01-04
+
+Judge John L. Kane entered a consent decree permanently enjoining the Denver Housing Authority from discriminating on the basis of sex, requiring a back-pay award of $35,000, and requiring production of the sexual harassment policy to government counsel within three months.`;
+    document.getElementById('reference-input').value = document.getElementById('summary-input').value;
+    Renderer.notice('ok', 'Example loaded.');
+  }
+};
+</script>
+</body>
+</html>
