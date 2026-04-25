@@ -1,6 +1,6 @@
 # Install and Smoke-Test Guide
 
-This is the shortest reviewer setup path. It uses a local Python virtual environment and bundled fixture data only. It does not require conda, Clearinghouse credentials, private training data, model weights, a GPU, or Claude/Anthropic credentials.
+This is the shortest setup path for any handoff recipient. It uses a local Python virtual environment and bundled fixture data only. It does not require conda, Clearinghouse credentials, large training data files, model weights, a GPU, or Claude/Anthropic credentials.
 
 For the full workflow after this smoke test, use [TUTORIAL.md](TUTORIAL.md).
 
@@ -56,11 +56,11 @@ This creates `data/dev.db`, which is ignored by git. The demo uses `data/fixture
 
 | Goal | Where to go |
 |------|-------------|
-| Full grader walkthrough | [TUTORIAL.md](TUTORIAL.md) |
+| Full walkthrough | [TUTORIAL.md](TUTORIAL.md) |
 | Final deliverable map | [FINAL_SUBMISSION.md](FINAL_SUBMISSION.md) |
 | Reproduce the seven final figures | [notebooks/figure_instructions.ipynb](notebooks/figure_instructions.ipynb) |
 | Understand scripts and QA | [scripts/README.md](scripts/README.md) |
-| Open partner-facing browser tools | [tools/README.md](tools/README.md) |
+| Open browser review tools | [tools/README.md](tools/README.md) |
 
 ## Optional API Keys
 
@@ -82,9 +82,9 @@ EOF
 
 Never commit `.env` or API keys.
 
-## Optional Handoff Package (If The Reviewer Should Not Re-Run Expensive Steps)
+## Optional Handoff Package (If The Recipient Should Not Re-Run Expensive Steps)
 
-The repository already includes the reviewer-visible outputs needed for a normal grading pass:
+The repository already includes the main outputs needed for a normal review:
 
 - `REPORT.md`
 - `figures/figure1_training_dynamics.png`
@@ -97,7 +97,7 @@ The repository already includes the reviewer-visible outputs needed for a normal
 - `data/fixtures/`
 - `notebooks/figure_instructions.ipynb`
 
-If you are handing off a supplemental archive so the reviewer can inspect larger or private outputs without regenerating them, keep the same repo-relative paths when you place those files:
+If you are handing off the larger project artifacts outside git, keep the same repo-relative paths when you place those files:
 
 ```text
 data/training/train.jsonl
@@ -121,7 +121,7 @@ Use this split when preparing the handoff:
 
 - Keep in the public git repo:
   - source code, docs, tests, tools, notebooks, final figures, and `data/fixtures/`
-- Share only in the private handoff archive, Teams drive, or partner drive:
+- Share in the handoff folder, Teams drive, or partner drive:
   - `data/training/*.jsonl`
   - `data/training_v2/`
   - `runs/*/checkpoint-*`
@@ -130,7 +130,9 @@ Use this split when preparing the handoff:
   - generated QA report directories
   - `REPORT.pdf`
 
-The final video can stay in the Teams drive. Reference that location in the final report, README, or submission email rather than trying to commit the video itself.
+These files are shared outside git because they are large handoff artifacts, not because different recipients need different instructions.
+
+The final video can stay in the Teams drive or handoff folder. Reference that location in the final report, README, or submission email rather than trying to commit the video itself.
 
 ## Optional Cleanup
 

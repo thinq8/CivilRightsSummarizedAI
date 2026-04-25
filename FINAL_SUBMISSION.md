@@ -4,13 +4,13 @@ This file explains how the final deliverables fit together. It is meant to answe
 
 ## Reviewer Path
 
-Start here if you are grading or reviewing the project:
+Start here if you are grading, reviewing, or receiving the project handoff:
 
 1. `INSTALL.md` - local setup, tests, and the shortest mock demo.
 2. `TUTORIAL.md` - full walkthrough from mock ingestion through HPCC training, evaluation, QA, and figures.
 3. `REPORT.md` - final technical report and results.
 4. `notebooks/figure_instructions.ipynb` - figure reproduction notebook.
-5. `tools/README.md` - partner-facing browser tools.
+5. `tools/README.md` - browser review tools.
 6. `scripts/README.md` - training, evaluation, QA, and helper script guide.
 
 ## What Is Done vs. Intentionally Not Bundled
@@ -25,12 +25,15 @@ Done and included:
 - Browser-based generator, evaluator, and QA review prototypes.
 - Small non-private fixtures for tests, demos, and final figure reproduction.
 
-Intentionally not bundled:
+Shared outside git when included in the handoff:
 
-- Full raw training splits, because they are large and may include partner-controlled material.
-- Prepared `data/training_v2/` splits, because they are regenerated from raw training data.
+- Full raw training splits, because they are large handoff artifacts.
+- Prepared `data/training_v2/` splits, because they are regenerated from raw training data and are larger than the core repo.
 - LoRA checkpoints and adapter weights, because they are large model artifacts.
-- Raw generated evaluation JSONL outputs, because the repository uses reduced aggregate fixtures for reproducibility.
+- Raw generated evaluation JSONL outputs and QA report folders, because the repository uses reduced aggregate fixtures for the lightweight walkthrough.
+
+Still intentionally excluded from any handoff bundle:
+
 - API keys and local SQLite databases.
 
 ## Final Deliverables
@@ -47,6 +50,30 @@ Intentionally not bundled:
 | Pipeline package | `src/clearinghouse/` | Ingestion, clients, storage, processing, and CLI |
 | Training/eval scripts | `scripts/`, `eval/` | Data prep, LoRA training, checkpoint evaluation, Claude benchmark, QA triage |
 | Small fixtures | `data/fixtures/` | Shareable data for tests, demos, and figure fallbacks |
+
+## Handoff Package Paths
+
+If the larger project artifacts are included alongside the repository, preserve these paths so the docs and commands continue to work:
+
+```text
+data/training/train.jsonl
+data/training/val.jsonl
+data/training/test.jsonl
+data/training_v2/train.jsonl
+data/training_v2/val.jsonl
+data/training_v2/test.jsonl
+runs/qwen25_7b_lora_run2/checkpoint-3000/
+runs/qwen25_7b_lora_run2/checkpoint-3690/
+eval/results/
+qa_report_ckpt3000/
+qa_report_ckpt3690/
+eval_ckpt3000.jsonl
+eval_ckpt3690.jsonl
+eval_claude_sonnet.jsonl
+REPORT.pdf
+```
+
+This same handoff package is intended for both graders and community partners.
 
 ## Data Processing Figure
 
@@ -82,11 +109,11 @@ These steps work from the public repository alone:
 - Reproduce fixture-backed figures in `notebooks/figure_instructions.ipynb`.
 - Open the standalone browser QA tools in `tools/`.
 
-These steps require extra access:
+These steps require extra access or the larger handoff files:
 
 - Live ingestion requires a Clearinghouse API token.
 - Claude generation/judging requires `ANTHROPIC_API_KEY`.
-- Full training requires the large private JSONL splits in `data/training/`.
+- Full training requires the large JSONL splits in `data/training/`.
 - Local model evaluation requires LoRA adapter/checkpoint files in `runs/`.
 
 ## Included Data Metadata

@@ -63,7 +63,7 @@ The project’s main technical finding is that the final training checkpoint was
 
 ## What Is Not Bundled
 
-The public repository does not include full training JSONL files, prepared training splits, model checkpoints, raw private evaluation outputs, or API keys. The included fixtures are intentionally small and documented in [data/fixtures/README.md](data/fixtures/README.md).
+The public repository does not include full training JSONL files, prepared training splits, model checkpoints, large raw evaluation outputs, or API keys. The included fixtures are intentionally small and documented in [data/fixtures/README.md](data/fixtures/README.md). If you are receiving the larger handoff package outside git, keep the repo-relative paths described in [INSTALL.md](INSTALL.md) and [FINAL_SUBMISSION.md](FINAL_SUBMISSION.md).
 
 ## References
 
