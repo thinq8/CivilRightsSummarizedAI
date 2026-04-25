@@ -522,19 +522,42 @@ const SourceParser = {
         const title = (body.match(/Title:\s*(.+)/i) || [])[1] || `Chunk ${chunkNo}`;
         const type = (body.match(/Type:\s*(.+)/i) || [])[1] || 'Document';
         const date = (body.match(/Date:\s*(.+)/i) || [])[1] || '';
+        const textUrl = (body.match(/Text URL:\s*(.+)/i) || [])[1] || '';
         const cleaned = body
           .replace(/\[DOCUMENT\]/gi, '')
           .replace(/Title:\s*.+/i, '')
           .replace(/Type:\s*.+/i, '')
           .replace(/Date:\s*.+/i, '')
+          .replace(/Text URL:\s*.+/i, '')
           .trim();
-        chunks.push(this.normalize({ index: chunkNo, title, type, date, text: cleaned }, chunks.length));
+        chunks.push(this.normalize({ index: chunkNo, title, type, date, textUrl, text: cleaned }, chunks.length));
       }
       return chunks;
     }
     return [this.normalize({ title: 'Pasted Source Text', type: 'Document', text: trimmed }, 0)];
   },
+  extractText(src) {
+    const candidates = [
+      src.text,
+      src.full_text,
+      src.plain_text,
+      src.extracted_text,
+      src.ocr_text,
+      src.document_text,
+      src.text_content,
+      src.content,
+      src.body,
+      src.public_note,
+      src.description
+    ];
+    for (const value of candidates) {
+      const cleaned = Utils.stripHtml(value || '').trim();
+      if (cleaned) return cleaned;
+    }
+    return '';
+  },
   normalize(src, index) {
+    const text = this.extractText(src);
     return {
       index: Number(src.index || index + 1),
       id: String(src.id || src.document_id || src.index || index + 1),
@@ -542,12 +565,35 @@ const SourceParser = {
       type: src.type || src.document_type || 'Document',
       date: src.date || src.filed_date || '',
       tier: src.tier || 3,
-      text: Utils.stripHtml(src.text || src.full_text || src.plain_text || src.description || '')
+      text,
+      textUrl: src.textUrl || src.text_url || '',
+      externalUrl: src.externalUrl || src.external_url || src.source_url || src.url || '',
+      hasText: Boolean(src.hasText || src.has_text || text)
     };
   }
 };
 
 const QaChecker = {
+  stripDisplayHeader(summary) {
+    const headerLine = /^\s*(?:\*\*[^*]{1,160}\*\*|#{1,3}\s+\S.{0,160}|(?:civil action|case|docket)\s+no\.?\s*[:#]?\s*\S.*|(?:united states district court|u\.s\. district court|district court|court of appeals|supreme court)\b.*|filed\s*:\s*\S.*|court\s*:\s*\S.*)\s*$/i;
+    const lines = String(summary || '').split(/\n/);
+    let idx = 0;
+    let consumed = 0;
+    while (idx < lines.length && consumed < 8) {
+      const line = lines[idx].trim();
+      if (!line) {
+        idx += 1;
+        continue;
+      }
+      if (headerLine.test(line)) {
+        idx += 1;
+        consumed += 1;
+        continue;
+      }
+      break;
+    }
+    return lines.slice(idx).join('\n').trimStart();
+  },
   check(summary, reference) {
     const flags = [];
     const add = (severity, code, message, evidence = '') => flags.push({ severity, code, message, evidence });
@@ -558,7 +604,8 @@ const QaChecker = {
     else if (words < 80) add('warning', 'TOO_SHORT', `Only ${words} words. Clearinghouse summaries usually need more detail.`);
     if (words > 2000) add('warning', 'TOO_LONG', `Summary is ${words} words; review for over-inclusion.`);
 
-    const rawArtifact = summary.match(/\[DOCUMENT\]|\[DOC\]|<\|user\|>|<\|assistant\|>|\[\/INST\]|^\s*UNITED STATES DISTRICT COURT\b|^\s*\/s\//mi);
+    const artifactText = this.stripDisplayHeader(summary);
+    const rawArtifact = artifactText.match(/\[DOCUMENT\]|\[DOC\]|<\|user\|>|<\|assistant\|>|\[\/INST\]|^\s*(?:UNITED STATES )?DISTRICT COURT\b|^\s*(?:Case No\.?|Civil Action No\.?)|^\s*\/s\//mi);
     if (rawArtifact) add('critical', 'RAW_DOCUMENT_ARTIFACT', 'Raw filing or prompt artifact leaked into the summary.', rawArtifact[0]);
 
     const meta = summary.match(/\b(as an ai|here(?:'s| is) (?:a |the |your )?(?:summary|case summary)|based on the (?:provided|above|given)|i (?:will|am|can) (?:now )?(?:provide|summarize|write))/i);
@@ -784,8 +831,12 @@ const Renderer = {
     wrap.innerHTML = AppState.sources.map(src => `
       <div class="chunk" id="chunk-${src.index}">
         <div class="chunk-h">Chunk ${src.index}: ${Utils.esc(src.title)}</div>
-        <div class="chunk-m">${Utils.esc(src.type)} · ${Utils.esc(src.date)} · ${Utils.wordCount(src.text)} words</div>
-        <div>${Utils.esc((src.text || '').slice(0, 650))}${(src.text || '').length > 650 ? '...' : ''}</div>
+        <div class="chunk-m">${Utils.esc(src.type)} · ${Utils.esc(src.date)} · ${src.text ? `${Utils.wordCount(src.text)} words` : 'no full text in package'}</div>
+        <div>${
+          src.text
+            ? `${Utils.esc(src.text.slice(0, 650))}${src.text.length > 650 ? '...' : ''}`
+            : `No source text was included for this chunk. ${src.textUrl ? `The generator package preserved a text URL: ${Utils.esc(src.textUrl)}` : 'Paste source text or re-export from the generator after text hydration.'}`
+        }</div>
       </div>
     `).join('');
   },
@@ -902,7 +953,7 @@ const EvaluatorApp = {
       document.getElementById('reference-input').value = pkg.reference?.summary || '';
       AppState.sources = (pkg.sources || []).map((s, i) => SourceParser.normalize(s, i));
       document.getElementById('source-input').value = AppState.sources.map(s =>
-        `Chunk ${s.index}:\n[DOCUMENT]\nTitle: ${s.title}\nType: ${s.type}\nDate: ${s.date}\n\n${s.text}`
+        `Chunk ${s.index}:\n[DOCUMENT]\nTitle: ${s.title}\nType: ${s.type}\nDate: ${s.date}\n${s.textUrl ? `Text URL: ${s.textUrl}\n` : ''}\n${s.text || ''}`
       ).join('\n\n');
       Renderer.notice('ok', `Imported package for ${pkg.case?.name || 'case'}.`);
     } catch (err) {

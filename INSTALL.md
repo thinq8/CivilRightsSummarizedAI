@@ -71,13 +71,66 @@ Keys are not needed for the smoke test.
   - Access request: <https://www.clearinghouse.net/api-request>
 - Claude generation or judging requires `ANTHROPIC_API_KEY`.
 
-Copy `.env.example` to `.env` only if you are running live/API-backed workflows:
+Create a local `.env` file only if you are running live/API-backed workflows:
 
 ```bash
-cp .env.example .env
+cat > .env <<'EOF'
+CLEARINGHOUSE_API_TOKEN=your_token_here
+ANTHROPIC_API_KEY=your_key_here
+EOF
 ```
 
 Never commit `.env` or API keys.
+
+## Optional Handoff Package (If The Reviewer Should Not Re-Run Expensive Steps)
+
+The repository already includes the reviewer-visible outputs needed for a normal grading pass:
+
+- `REPORT.md`
+- `figures/figure1_training_dynamics.png`
+- `figures/figure2_prompt_length_distribution.png`
+- `figures/figure3_checkpoint_comparison.png`
+- `figures/figure4_qa_triage_3systems.png`
+- `figures/figure5_source_attribution.png`
+- `figures/figure6_cost_quality.png`
+- `figures/figure7_flag_frequency.png`
+- `data/fixtures/`
+- `notebooks/figure_instructions.ipynb`
+
+If you are handing off a supplemental archive so the reviewer can inspect larger or private outputs without regenerating them, keep the same repo-relative paths when you place those files:
+
+```text
+data/training/train.jsonl
+data/training/val.jsonl
+data/training/test.jsonl
+data/training_v2/train.jsonl
+data/training_v2/val.jsonl
+data/training_v2/test.jsonl
+runs/qwen25_7b_lora_run2/checkpoint-3000/
+runs/qwen25_7b_lora_run2/checkpoint-3690/
+eval/results/
+qa_report_ckpt3000/
+qa_report_ckpt3690/
+eval_ckpt3000.jsonl
+eval_ckpt3690.jsonl
+eval_claude_sonnet.jsonl
+REPORT.pdf
+```
+
+Use this split when preparing the handoff:
+
+- Keep in the public git repo:
+  - source code, docs, tests, tools, notebooks, final figures, and `data/fixtures/`
+- Share only in the private handoff archive, Teams drive, or partner drive:
+  - `data/training/*.jsonl`
+  - `data/training_v2/`
+  - `runs/*/checkpoint-*`
+  - `eval/results/`
+  - raw evaluation JSONL outputs
+  - generated QA report directories
+  - `REPORT.pdf`
+
+The final video can stay in the Teams drive. Reference that location in the final report, README, or submission email rather than trying to commit the video itself.
 
 ## Optional Cleanup
 

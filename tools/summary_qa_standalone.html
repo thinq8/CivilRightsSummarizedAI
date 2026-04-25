@@ -537,6 +537,27 @@ const RE = {
 
 const CURRENT_YEAR = new Date().getFullYear();
 
+function stripDisplayHeaderForRawArtifactCheck(text) {
+  const headerLine = /^\s*(?:\*\*[^*]{1,160}\*\*|#{1,3}\s+\S.{0,160}|(?:civil action|case|docket)\s+no\.?\s*[:#]?\s*\S.*|(?:united states district court|u\.s\. district court|district court|court of appeals|supreme court)\b.*|filed\s*:\s*\S.*|court\s*:\s*\S.*)\s*$/i;
+  const lines = String(text || "").split(/\n/);
+  let idx = 0;
+  let consumed = 0;
+  while (idx < lines.length && consumed < 8) {
+    const line = lines[idx].trim();
+    if (!line) {
+      idx += 1;
+      continue;
+    }
+    if (headerLine.test(line)) {
+      idx += 1;
+      consumed += 1;
+      continue;
+    }
+    break;
+  }
+  return lines.slice(idx).join("\n").trimStart();
+}
+
 /* ---------------------------- Statute lexicon ----------------------------- *
  * Each entry maps a canonical short name → array of regex aliases.
  * Keep the patterns case-insensitive (\b word-boundaries) and conservative
@@ -644,13 +665,14 @@ function checkSummary(prediction, reference) {
   checkGarbledYears(prediction, add);
 
   // 4. Raw document artifacts
-  const pleading = prediction.match(RE.PLEADING);
+  const artifactText = stripDisplayHeaderForRawArtifactCheck(prediction);
+  const pleading = artifactText.match(RE.PLEADING);
   if (pleading) {
     add("critical", "RAW_DOCUMENT_ARTIFACT",
       "Summary contains raw pleading or order text (caption, signature block, court header) — model is regurgitating source documents.",
       String(pleading[0]).slice(0, 80).trim());
   }
-  if (RE.LINE_NUMS.test(prediction)) {
+  if (RE.LINE_NUMS.test(artifactText)) {
     add("critical", "RAW_DOCUMENT_ARTIFACT",
       "Summary contains consecutive line-numbered lines — likely a raw transcript or brief block.",
       "line-numbered block detected");

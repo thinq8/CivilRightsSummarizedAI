@@ -140,6 +140,18 @@ PLEADING_CAPTION = re.compile(
 
 LINE_NUMBER_BLOCK = re.compile(r"(?m)(^\s*\d{1,2}\s+\S.*(?:\n|$)){3,}")
 
+DISPLAY_HEADER_LINE = re.compile(
+    r"(?i)^\s*(?:"
+    r"\*\*[^*]{1,160}\*\*|"
+    r"\#{1,3}\s+\S.{0,160}|"
+    r"(?:civil action|case|docket)\s+no\.?\s*[:#]?\s*\S.*|"
+    r"(?:united states district court|u\.s\. district court|district court|"
+    r"court of appeals|supreme court)\b.*|"
+    r"filed\s*:\s*\S.*|"
+    r"court\s*:\s*\S.*"
+    r")\s*$"
+)
+
 META_PROMPT_PATTERNS = re.compile(
     r"(?i)\b(as an ai|i (?:will|am|can|'ll|'m) (?:now |provide|be )?(?:summariz|creat|generat|writ|provid)|"
     r"here(?:'s| is) (?:a |the |your )?(?:summary|case summary)|"
@@ -148,6 +160,30 @@ META_PROMPT_PATTERNS = re.compile(
 )
 
 BRITISH_JUDGMENT = re.compile(r"\bjudgement\b")
+
+
+def _strip_display_header_for_raw_artifact_check(text: str) -> str:
+    """Remove a short generated display header before raw-artifact checks.
+
+    Claude showcase summaries often start with title, docket number, court, and
+    filed-date lines. Those are useful editorial headers, not source leakage.
+    Raw court-document artifacts should still be flagged if they appear after
+    this short header block.
+    """
+    lines = text.splitlines()
+    idx = 0
+    consumed = 0
+    while idx < len(lines) and consumed < 8:
+        line = lines[idx].strip()
+        if not line:
+            idx += 1
+            continue
+        if DISPLAY_HEADER_LINE.match(line):
+            idx += 1
+            consumed += 1
+            continue
+        break
+    return "\n".join(lines[idx:]).lstrip()
 
 PRESENT_TENSE_VERBS = re.compile(
     r"\b(?:files|sues|alleges|argues|claims|seeks|brings|moves|asks|demands|challenges)\b"
@@ -418,7 +454,7 @@ class SummaryQAChecker:
         """Catch cases where the model regurgitates raw court-filing text
         instead of producing a summary.
         """
-        text = r.prediction
+        text = _strip_display_header_for_raw_artifact_check(r.prediction)
 
         # Pleading-style captions (strong signal of raw filing text)
         pleading_matches = PLEADING_CAPTION.findall(text)
@@ -523,7 +559,10 @@ class SummaryQAChecker:
         suspicious = []
         # Tokens with 3+ consecutive same letters (except ll, ee, etc.)
         for m in re.finditer(r"\b\w*([a-zA-Z])\1{2,}\w*\b", text):
-            suspicious.append(m.group())
+            token = m.group()
+            if re.fullmatch(r"[ivxlcdm]+", token, re.IGNORECASE):
+                continue
+            suspicious.append(token)
         # Tokens with unusual consonant clusters
         patterns = [
             r"\b\w*iiv\w*\b",      # Juvinile, Juveine

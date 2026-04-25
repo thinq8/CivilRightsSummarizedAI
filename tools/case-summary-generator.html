@@ -643,8 +643,10 @@ const Renderer = {
         <div><input type="checkbox" ${doc.selected ? 'checked' : ''} onchange="GeneratorApp.toggleDoc(${i}, this.checked)"></div>
         <div>
           <h3>${Utils.esc(doc.title || `Document ${i + 1}`)}</h3>
-          <div class="meta">${Utils.esc(doc.type || 'Document')} · ${Utils.esc(doc.date || 'No date')} · ${Utils.esc(doc.id || '')}</div>
+          <div class="meta">${Utils.esc(doc.type || 'Document')} · ${Utils.esc(doc.date || 'No date')} · ${Utils.esc(doc.id || '')} · ${doc.text ? `${Utils.wordCount(doc.text)} words` : 'no full text loaded'}</div>
           <textarea placeholder="Paste or edit source text for this document." oninput="GeneratorApp.updateDocText(${i}, this.value)">${Utils.esc(doc.text || '')}</textarea>
+          ${!doc.text && doc.textUrl ? '<div class="note">This record has a text_url, but no text was loaded yet. Re-import through the local proxy or paste text here.</div>' : ''}
+          ${!doc.text && !doc.textUrl ? '<div class="note">The API returned document metadata only. Paste source text here before using this as evidence.</div>' : ''}
         </div>
         <div><span class="tier t${doc.tier || 3}">Tier ${doc.tier || 3}</span></div>
       </div>
@@ -669,7 +671,7 @@ const Renderer = {
       <span class="source-pill">
         <strong>Chunk ${src.index}: ${Utils.esc(src.title)}</strong><br>
         ${Utils.esc(src.type || 'Document')} · ${Utils.esc(src.date || '')}<br>
-        ${Utils.wordCount(src.text)} words
+        ${src.text ? `${Utils.wordCount(src.text)} words` : 'No full text loaded'}
       </span>
     `).join('');
   }
@@ -684,8 +686,28 @@ const DocumentSelector = {
     if (/docket|pacer|correspondence|press|newsletter/.test(hay)) return 4;
     return 3;
   },
+  extractText(raw) {
+    const candidates = [
+      raw.text,
+      raw.full_text,
+      raw.plain_text,
+      raw.extracted_text,
+      raw.ocr_text,
+      raw.document_text,
+      raw.text_content,
+      raw.content,
+      raw.body,
+      raw.public_note,
+      raw.description
+    ];
+    for (const value of candidates) {
+      const cleaned = Utils.stripHtml(value || '').trim();
+      if (cleaned) return cleaned;
+    }
+    return '';
+  },
   mapDocument(raw, index) {
-    const text = raw.text || raw.full_text || raw.plain_text || raw.extracted_text || raw.ocr_text || raw.description || raw.public_note || '';
+    const text = this.extractText(raw);
     const title = raw.title || raw.document_title || raw.description || `Document ${index + 1}`;
     const type = raw.document_type || raw.type || raw.order_type || 'Document';
     const mapped = {
@@ -695,7 +717,10 @@ const DocumentSelector = {
       type,
       date: raw.date || raw.filed_date || raw.display_date || '',
       tier: 3,
-      text: Utils.stripHtml(text),
+      text,
+      textUrl: raw.text_url || raw.textUrl || raw.document_text_url || '',
+      externalUrl: raw.external_url || raw.externalUrl || raw.source_url || raw.url || raw.clearinghouse_link || '',
+      hasText: Boolean(raw.has_text || raw.hasText || text),
       selected: false,
       raw
     };
@@ -713,7 +738,10 @@ const DocumentSelector = {
         type: d.type,
         date: d.date,
         tier: d.tier,
-        text: d.text || ''
+        text: d.text || '',
+        textUrl: d.textUrl || '',
+        externalUrl: d.externalUrl || '',
+        hasText: Boolean(d.hasText || d.text)
       }));
   },
   parseSourceText(text) {
@@ -734,13 +762,15 @@ const DocumentSelector = {
         const title = (body.match(/Title:\s*(.+)/i) || [])[1] || `Chunk ${chunkNo}`;
         const type = (body.match(/Type:\s*(.+)/i) || [])[1] || 'Document';
         const date = (body.match(/Date:\s*(.+)/i) || [])[1] || '';
+        const textUrl = (body.match(/Text URL:\s*(.+)/i) || [])[1] || '';
         const cleaned = body
           .replace(/\[DOCUMENT\]/gi, '')
           .replace(/Title:\s*.+/i, '')
           .replace(/Type:\s*.+/i, '')
           .replace(/Date:\s*.+/i, '')
+          .replace(/Text URL:\s*.+/i, '')
           .trim();
-        docs.push(this.mapDocument({ id: chunkNo, title, document_type: type, date, text: cleaned }, docs.length));
+        docs.push(this.mapDocument({ id: chunkNo, title, document_type: type, date, text_url: textUrl, text: cleaned }, docs.length));
       }
       return docs;
     }
@@ -749,6 +779,11 @@ const DocumentSelector = {
 };
 
 const ApiClient = {
+  async parseResponse(res) {
+    const contentType = res.headers.get('Content-Type') || '';
+    if (contentType.includes('application/json')) return await res.json();
+    return await res.text();
+  },
   async request(url, token) {
     const proxyUrl = document.getElementById('proxy-url').value.trim();
     if (proxyUrl) return await this.requestViaProxy(proxyUrl, url, token);
@@ -766,7 +801,7 @@ const ApiClient = {
       } catch (_) {}
       throw new Error(msg);
     }
-    return await res.json();
+    return await this.parseResponse(res);
   },
   async requestViaProxy(proxyUrl, url, token) {
     const endpoint = proxyUrl.replace(/\/?$/, '/');
@@ -786,7 +821,39 @@ const ApiClient = {
       } catch (_) {}
       throw new Error(msg);
     }
-    return await res.json();
+    return await this.parseResponse(res);
+  },
+  absoluteApiUrl(url) {
+    if (!url) return '';
+    try {
+      return new URL(url, 'https://clearinghouse.net').href;
+    } catch (_) {
+      return '';
+    }
+  },
+  async fetchDocumentText(doc, token) {
+    const rawUrl = doc.textUrl || doc.raw?.text_url || doc.raw?.textUrl || '';
+    const url = this.absoluteApiUrl(rawUrl);
+    if (!url) return '';
+    const payload = await this.request(url, token);
+    if (typeof payload === 'string') return Utils.stripHtml(payload).trim();
+    const text = DocumentSelector.extractText(payload || {});
+    return text.trim();
+  },
+  async hydrateSelectedDocumentText(docs, token) {
+    let hydrated = 0;
+    for (const doc of docs) {
+      if (!doc.selected || doc.text || !doc.textUrl) continue;
+      try {
+        const text = await this.fetchDocumentText(doc, token);
+        if (text) {
+          doc.text = text;
+          doc.hasText = true;
+          hydrated += 1;
+        }
+      } catch (_) {}
+    }
+    return hydrated;
   },
   async fetchCase(caseId, token) {
     const url = `${CRLC_BASE}/cases/?case_id=${encodeURIComponent(caseId)}`;
@@ -1006,7 +1073,13 @@ const GeneratorApp = {
       const docs = await ApiClient.fetchDocuments(meta.id || caseId, token);
       AppState.caseMeta = meta;
       AppState.documents = docs.map((doc, i) => DocumentSelector.mapDocument(doc, i));
-      Renderer.status('ok', `Imported ${meta.name || 'case'} with ${AppState.documents.length} document record(s). Paste document text into selected rows if the API did not return text.`);
+      Renderer.status('info', `Imported ${meta.name || 'case'} with ${AppState.documents.length} document record(s). Checking selected documents for downloadable text...`);
+      const hydrated = await ApiClient.hydrateSelectedDocumentText(AppState.documents, token);
+      const selectedWithText = AppState.documents.filter(doc => doc.selected && doc.text).length;
+      Renderer.status(
+        'ok',
+        `Imported ${meta.name || 'case'} with ${AppState.documents.length} document record(s). ${hydrated} selected source(s) were hydrated from text_url; ${selectedWithText} selected source(s) now have text.`
+      );
       Renderer.renderAll();
     } catch (err) {
       Renderer.status('warn', `Direct import did not complete: ${err.message}. This can happen if the browser blocks the API request. Use the paste/upload fallback below.`);
